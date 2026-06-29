@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Цифровой цирк · Помни против Джекса</title>
+    <title>Цифровой цирк · 3D стиль</title>
     <style>
         * {
             margin: 0;
@@ -13,35 +13,33 @@
         }
 
         body {
-            background: #0a0a12;
+            background: #0a0815;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Segoe UI', Arial, sans-serif;
             padding: 12px;
-            margin: 0;
             touch-action: none;
         }
 
         .game-wrapper {
             background: linear-gradient(145deg, #1a1040, #0d0a2a);
-            padding: 20px 20px 25px;
+            padding: 20px;
             border-radius: 32px;
-            box-shadow: 0 12px 0 #05051a, 0 0 0 3px #4a3f8a, inset 0 0 40px rgba(100, 80, 200, 0.15);
-            max-width: 560px;
+            box-shadow: 0 12px 0 #05051a, 0 0 60px rgba(100, 80, 255, 0.15);
+            max-width: 600px;
             width: 100%;
-            border: 1px solid #6a5acd;
+            border: 2px solid #6a5acd;
         }
 
         .game-container {
-            background: linear-gradient(180deg, #1a1040, #0d0a2a);
+            background: linear-gradient(180deg, #1a1050, #0a0820);
             border-radius: 20px;
             padding: 16px;
             box-shadow: inset 0 0 0 2px #3a2f7a;
         }
 
-        /* === ХЕДЕР === */
         .header {
             display: flex;
             justify-content: space-between;
@@ -50,29 +48,25 @@
             color: #c8b8ff;
             font-size: 16px;
             font-weight: 700;
-            letter-spacing: 1px;
-            text-shadow: 0 0 20px rgba(100, 80, 255, 0.3);
             flex-wrap: wrap;
             gap: 8px;
         }
 
         .header-title {
-            font-size: 18px;
+            font-size: 20px;
             background: linear-gradient(90deg, #ff6b9d, #c084fc, #6b9dff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: none;
             font-weight: 900;
         }
 
         .score-box {
             background: rgba(20, 15, 50, 0.8);
-            padding: 6px 18px;
+            padding: 6px 20px;
             border-radius: 40px;
             border: 2px solid #6a5acd;
             color: #f5e97b;
-            font-size: 22px;
-            box-shadow: inset 0 -3px 0 #2a1f5a, 0 0 20px rgba(100, 80, 255, 0.15);
+            font-size: 24px;
             backdrop-filter: blur(4px);
         }
 
@@ -80,14 +74,12 @@
             background: linear-gradient(145deg, #3a2f7a, #2a1f5a);
             border: none;
             color: #d3defa;
-            font-size: 20px;
-            padding: 4px 18px;
+            font-size: 22px;
+            padding: 4px 20px;
             border-radius: 40px;
-            font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 5px 0 #15102a, 0 0 20px rgba(100, 80, 255, 0.1);
+            box-shadow: 0 5px 0 #15102a;
             transition: 0.07s ease;
-            font-family: 'Courier New', monospace;
             border: 2px solid #6a5acd;
         }
 
@@ -96,71 +88,46 @@
             box-shadow: 0 1px 0 #15102a;
         }
 
-        /* === ХОЛСТ === */
         canvas {
             display: block;
             width: 100%;
-            aspect-ratio: 480 / 480;
-            background: radial-gradient(ellipse at center, #1a1050, #0a0820);
+            aspect-ratio: 1 / 1;
+            background: radial-gradient(ellipse at 30% 40%, #2a1a6a, #0a0820);
             border-radius: 16px;
-            image-rendering: crisp-edges;
-            image-rendering: pixelated;
             border: 3px solid #4a3f8a;
-            box-shadow: inset 0 0 0 2px #15102a, 0 6px 0 #05051a, 0 0 60px rgba(100, 80, 255, 0.08);
+            box-shadow: inset 0 0 60px rgba(100, 80, 255, 0.08), 0 6px 0 #05051a;
             touch-action: none;
             cursor: crosshair;
         }
 
-        /* === ИНФО === */
         .controls-hint {
             display: flex;
             justify-content: space-between;
             padding: 14px 4px 0 4px;
             color: #8a7ab5;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
-            letter-spacing: 0.5px;
             flex-wrap: wrap;
             gap: 6px;
         }
 
         .controls-hint span {
             background: rgba(20, 15, 50, 0.6);
-            padding: 4px 14px;
+            padding: 4px 16px;
             border-radius: 30px;
             border: 1px solid #3a2f7a;
             backdrop-filter: blur(4px);
         }
 
-        .hp-bar {
-            color: #ff7a8b;
-        }
-
-        .enemy-count {
-            color: #c084fc;
-        }
+        .hp-bar { color: #ff7a8b; }
+        .enemy-count { color: #c084fc; }
 
         @media (max-width: 480px) {
-            .game-wrapper {
-                padding: 12px;
-            }
-            .header {
-                font-size: 14px;
-            }
-            .header-title {
-                font-size: 15px;
-            }
-            .score-box {
-                font-size: 18px;
-                padding: 4px 14px;
-            }
-            .restart-btn {
-                font-size: 16px;
-                padding: 2px 14px;
-            }
-            .controls-hint {
-                font-size: 11px;
-            }
+            .game-wrapper { padding: 12px; }
+            .header-title { font-size: 16px; }
+            .score-box { font-size: 18px; padding: 4px 14px; }
+            .restart-btn { font-size: 18px; padding: 2px 14px; }
+            .controls-hint { font-size: 12px; }
         }
     </style>
 </head>
@@ -168,17 +135,14 @@
 
 <div class="game-wrapper">
     <div class="game-container">
-        <!-- ХЕДЕР -->
         <div class="header">
             <span class="header-title">🎪 ЦИФРОВОЙ ЦИРК</span>
             <span class="score-box">⭐ <span id="scoreDisplay">0</span></span>
             <button class="restart-btn" id="restartBtn">↺</button>
         </div>
 
-        <!-- ХОЛСТ 480x480 -->
-        <canvas id="gameCanvas" width="480" height="480"></canvas>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
 
-        <!-- ПОДСКАЗКИ -->
         <div class="controls-hint">
             <span>🖱️ клик / тап</span>
             <span class="hp-bar">❤️ <span id="hpDisplay">5</span></span>
@@ -189,123 +153,77 @@
 
 <script>
     // ============================================================
-    //  УДИВИТЕЛЬНЫЙ ЦИФРОВОЙ ЦИРК
-    //  Помни против Джекса · Пиксельная стрелялка
+    //  УДИВИТЕЛЬНЫЙ ЦИФРОВОЙ ЦИРК - 3D СТИЛЬ
+    //  Максимально приближенный к оригиналу
     // ============================================================
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
+    const W = 600, H = 600;
 
-    // --- UI ---
     const scoreSpan = document.getElementById('scoreDisplay');
     const hpSpan = document.getElementById('hpDisplay');
     const enemyCountSpan = document.getElementById('enemyCount');
 
-    // --- РАЗМЕРЫ ---
-    const SIZE = 480;
-    const CELL = 24;
-    const COLS = 20;
-    const ROWS = 20;
+    // --- ИГРОВЫЕ ПАРАМЕТРЫ ---
+    let score = 0, hp = 5, gameOver = false, frame = 0;
+    const CELL = 30;
+    const COLS = 20, ROWS = 20;
 
-    // --- ИГРОВЫЕ ПЕРЕМЕННЫЕ ---
-    let score = 0;
-    let hp = 5;
-    let gameOver = false;
-    let frame = 0;
-
-    // --- ИГРОК (ПОМНИ) ---
-    const player = {
-        x: 10,
-        y: 18,
-        size: 1.2,
-        color: '#ffd93d'
-    };
-
-    // --- ВРАГИ (ДЖЕКСЫ) ---
+    // --- ПЕРСОНАЖИ ---
+    const player = { x: 10, y: 18, size: 1.2 };
     let enemies = [];
-
-    // --- ПУЛИ ---
     let bullets = [];
-
-    // --- ТАЙМЕР СПАВНА ---
     let spawnCounter = 0;
-    const SPAWN_DELAY = 20;
-
-    // --- УПРАВЛЕНИЕ ---
-    let targetX = player.x;
-    let targetY = player.y;
+    const SPAWN_DELAY = 18;
+    let targetX = player.x, targetY = player.y;
 
     // ============================================================
     //  РЕСТАРТ
     // ============================================================
     function resetGame() {
-        score = 0;
-        hp = 5;
-        gameOver = false;
-        enemies = [];
-        bullets = [];
+        score = 0; hp = 5; gameOver = false;
+        enemies = []; bullets = [];
         spawnCounter = 0;
-        player.x = 10;
-        player.y = 18;
-        targetX = player.x;
-        targetY = player.y;
+        player.x = 10; player.y = 18;
+        targetX = player.x; targetY = player.y;
         frame = 0;
         updateUI();
     }
 
     // ============================================================
-    //  СПАВН ДЖЕКСА
+    //  СПАВН
     // ============================================================
     function spawnEnemy() {
         if (gameOver) return;
         const side = Math.random() < 0.5 ? 0 : 1;
-        let x, y;
-        if (side === 0) {
-            x = 0.5;
-            y = Math.floor(Math.random() * (ROWS - 4)) + 2;
-        } else {
-            x = COLS - 0.5;
-            y = Math.floor(Math.random() * (ROWS - 4)) + 2;
-        }
+        let x = side === 0 ? 0.5 : COLS - 0.5;
+        let y = Math.floor(Math.random() * (ROWS - 4)) + 2;
 
-        // Разные типы врагов
-        const types = ['jax', 'jax', 'jax', 'jax', 'caine'];
-        const type = types[Math.floor(Math.random() * types.length)];
-
+        const isBoss = Math.random() < 0.12 && enemies.length > 3;
         enemies.push({
-            x: x,
-            y: y,
-            type: type,
-            hp: type === 'caine' ? 3 : 1,
-            color: type === 'caine' ? '#ff6b6b' : '#b084f0',
-            size: type === 'caine' ? 1.8 : 1.2,
-            moveTimer: 0,
-            animFrame: 0
+            x, y,
+            type: isBoss ? 'caine' : 'jax',
+            hp: isBoss ? 5 : 1,
+            size: isBoss ? 2.0 : 1.3,
+            anim: Math.random() * 100,
+            hitTimer: 0
         });
     }
 
     // ============================================================
     //  ВЫСТРЕЛ
     // ============================================================
-    function shootAt(targetX, targetY) {
+    function shootAt(tx, ty) {
         if (gameOver) return;
-        const dx = targetX - player.x;
-        const dy = targetY - player.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dx = tx - player.x, dy = ty - player.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
         if (dist < 0.1) return;
-
-        const speed = 7;
-        const vx = (dx / dist) * speed;
-        const vy = (dy / dist) * speed;
-
+        const speed = 8;
         bullets.push({
-            x: player.x + 0.5,
-            y: player.y + 0.5,
-            vx: vx,
-            vy: vy,
-            life: 50,
-            color: '#ffd93d'
+            x: player.x + 0.5, y: player.y + 0.5,
+            vx: (dx/dist) * speed, vy: (dy/dist) * speed,
+            life: 50
         });
     }
 
@@ -319,94 +237,326 @@
     }
 
     // ============================================================
+    //  РИСОВАНИЕ ПЕРСОНАЖЕЙ (3D-стиль)
+    // ============================================================
+
+    // --- ПОМНИ (3D-стиль) ---
+    function drawPomni(x, y, size) {
+        const s = size * 22;
+        const cx = x * CELL, cy = y * CELL;
+
+        // Тень
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetY = 4;
+
+        // Тело с градиентом (объём)
+        const grad = ctx.createRadialGradient(cx-4, cy-4, 2, cx, cy, s);
+        grad.addColorStop(0, '#ffe066');
+        grad.addColorStop(0.5, '#ffd93d');
+        grad.addColorStop(1, '#e6b800');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.roundRect(cx - s/2, cy - s/2, s, s, 6);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+
+        // Волосы (синие, объёмные)
+        const hairGrad = ctx.createLinearGradient(cx, cy - s/2, cx, cy);
+        hairGrad.addColorStop(0, '#6b9dff');
+        hairGrad.addColorStop(1, '#4a7aff');
+        ctx.fillStyle = hairGrad;
+        ctx.beginPath();
+        ctx.roundRect(cx - s/2 - 2, cy - s/2 - 10, s + 4, 18, 4);
+        ctx.fill();
+
+        // Чёлка
+        ctx.fillStyle = '#4a7aff';
+        ctx.beginPath();
+        ctx.roundRect(cx - s/2 + 6, cy - s/2 - 14, s - 12, 10, 4);
+        ctx.fill();
+
+        // Глаза (белки)
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgba(255,255,255,0.2)';
+        ctx.beginPath();
+        ctx.ellipse(cx - 7, cy - 4, 8, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + 7, cy - 4, 8, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+
+        // Зрачки
+        ctx.fillStyle = '#2a1a4a';
+        ctx.beginPath();
+        ctx.arc(cx - 5, cy - 2, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + 9, cy - 2, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Блик в глазах
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(cx - 7, cy - 6, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + 7, cy - 6, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Улыбка
+        ctx.strokeStyle = '#cc6644';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy + 4, 10, 0.1, Math.PI - 0.1);
+        ctx.stroke();
+
+        // Щёки (румянец)
+        ctx.fillStyle = 'rgba(255, 100, 150, 0.25)';
+        ctx.beginPath();
+        ctx.ellipse(cx - 14, cy + 4, 6, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + 14, cy + 4, 6, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // --- ДЖЕКС (3D-стиль) ---
+    function drawJax(x, y, size, anim) {
+        const s = size * 22;
+        const cx = x * CELL, cy = y * CELL;
+        const bounce = Math.sin(anim) * 2;
+
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetY = 4;
+
+        // Тело с градиентом
+        const grad = ctx.createRadialGradient(cx-4, cy-4+bounce, 2, cx, cy+bounce, s);
+        grad.addColorStop(0, '#d4a0ff');
+        grad.addColorStop(0.4, '#b084f0');
+        grad.addColorStop(1, '#7a4ac0');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.roundRect(cx - s/2, cy - s/2 + bounce, s, s, 6);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+
+        // Глаза (большие)
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = 'rgba(255,255,255,0.15)';
+        ctx.beginPath();
+        ctx.ellipse(cx - 8, cy - 2 + bounce, 10, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + 8, cy - 2 + bounce, 10, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+
+        // Зрачки (следят за игроком)
+        const eyeOff = Math.sin(anim * 0.5) * 3;
+        ctx.fillStyle = '#2a1a4a';
+        ctx.beginPath();
+        ctx.arc(cx - 6 + eyeOff, cy + bounce, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + 10 + eyeOff, cy + bounce, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.arc(cx - 4 + eyeOff, cy + 2 + bounce, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + 12 + eyeOff, cy + 2 + bounce, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Улыбка
+        ctx.strokeStyle = '#6a3a8a';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy + 8 + bounce, 12, 0.2, Math.PI - 0.2);
+        ctx.stroke();
+
+        // Рожки
+        ctx.fillStyle = '#6a3a8a';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();
+        ctx.roundRect(cx - s/2 - 4, cy - s/2 - 6 + bounce, 8, 12, 4);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.roundRect(cx + s/2 - 4, cy - s/2 - 6 + bounce, 8, 12, 4);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+    }
+
+    // --- КЕЙН (босс, 3D-стиль) ---
+    function drawCaine(x, y, size, anim) {
+        const s = size * 22;
+        const cx = x * CELL, cy = y * CELL;
+        const bounce = Math.sin(anim * 0.7) * 3;
+
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 25;
+        ctx.shadowOffsetY = 5;
+
+        // Тело
+        const grad = ctx.createRadialGradient(cx-6, cy-6+bounce, 2, cx, cy+bounce, s);
+        grad.addColorStop(0, '#ff6b6b');
+        grad.addColorStop(0.5, '#e63946');
+        grad.addColorStop(1, '#b71c1c');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.roundRect(cx - s/2 - 4, cy - s/2 + bounce, s + 8, s, 8);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+
+        // Шляпа
+        ctx.fillStyle = '#8b0000';
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();
+        ctx.roundRect(cx - s/2 - 6, cy - s/2 - 14 + bounce, s + 12, 12, 4);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.roundRect(cx - s/4, cy - s/2 - 28 + bounce, s/2, 16, 4);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+
+        // Глаза
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.ellipse(cx - 10, cy - 2 + bounce, 9, 11, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + 10, cy - 2 + bounce, 9, 11, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#1a0a2a';
+        ctx.beginPath();
+        ctx.arc(cx - 8, cy + bounce, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + 12, cy + bounce, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(cx - 6, cy + 3 + bounce, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + 14, cy + 3 + bounce, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Улыбка (злая)
+        ctx.strokeStyle = '#8b0000';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy + 8 + bounce, 14, 0.1, Math.PI - 0.1);
+        ctx.stroke();
+
+        // Бантик
+        ctx.fillStyle = '#ff6b6b';
+        ctx.beginPath();
+        ctx.roundRect(cx - s/2 - 10, cy - 2 + bounce, 8, 8, 4);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.roundRect(cx + s/2 + 2, cy - 2 + bounce, 8, 8, 4);
+        ctx.fill();
+    }
+
+    // ============================================================
     //  ОБНОВЛЕНИЕ
     // ============================================================
     function update() {
         if (gameOver) return;
         frame++;
 
-        // --- Движение игрока ---
-        const dx = targetX - player.x;
-        const dy = targetY - player.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        // Движение игрока
+        const dx = targetX - player.x, dy = targetY - player.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
         if (dist > 0.2) {
             const step = 0.1;
-            player.x += (dx / dist) * step;
-            player.y += (dy / dist) * step;
+            player.x += (dx/dist) * step;
+            player.y += (dy/dist) * step;
         }
         player.x = Math.max(0.3, Math.min(COLS - 0.7, player.x));
         player.y = Math.max(0.3, Math.min(ROWS - 0.7, player.y));
 
-        // --- Спавн ---
+        // Спавн
         spawnCounter++;
         if (spawnCounter >= SPAWN_DELAY) {
             spawnCounter = 0;
-            if (enemies.length < 15) {
-                spawnEnemy();
-            }
+            if (enemies.length < 12) spawnEnemy();
         }
 
-        // --- Движение врагов ---
+        // Движение врагов
         for (let e of enemies) {
-            const dx2 = player.x - e.x;
-            const dy2 = player.y - e.y;
-            const d = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-            const speed = e.type === 'caine' ? 0.035 : 0.05;
+            const dx2 = player.x - e.x, dy2 = player.y - e.y;
+            const d = Math.sqrt(dx2*dx2 + dy2*dy2);
+            const speed = e.type === 'caine' ? 0.03 : 0.045;
             if (d > 0.3) {
-                e.x += (dx2 / d) * speed;
-                e.y += (dy2 / d) * speed;
+                e.x += (dx2/d) * speed;
+                e.y += (dy2/d) * speed;
             }
             e.x = Math.max(0.2, Math.min(COLS - 0.2, e.x));
             e.y = Math.max(0.2, Math.min(ROWS - 0.2, e.y));
-            e.animFrame += 0.05;
+            e.anim += 0.04;
         }
 
-        // --- Пули ---
+        // Пули
         for (let i = bullets.length - 1; i >= 0; i--) {
             const b = bullets[i];
             b.x += b.vx * 0.08;
             b.y += b.vy * 0.08;
             b.life--;
 
-            let bulletUsed = false;
+            let used = false;
             for (let j = enemies.length - 1; j >= 0; j--) {
                 const e = enemies[j];
-                const dx3 = b.x - e.x;
-                const dy3 = b.y - e.y;
-                const hitDist = e.type === 'caine' ? 1.2 : 0.8;
-                if (dx3 * dx3 + dy3 * dy3 < hitDist) {
+                const dx3 = b.x - e.x, dy3 = b.y - e.y;
+                const hitDist = e.type === 'caine' ? 1.8 : 1.0;
+                if (dx3*dx3 + dy3*dy3 < hitDist) {
                     e.hp--;
+                    e.hitTimer = 10;
                     if (e.hp <= 0) {
-                        const points = e.type === 'caine' ? 50 : 10;
-                        score += points;
+                        score += e.type === 'caine' ? 50 : 10;
                         enemies.splice(j, 1);
                     }
-                    bulletUsed = true;
+                    used = true;
                     updateUI();
                     break;
                 }
             }
-
-            if (bulletUsed || b.life <= 0 || b.x < -1 || b.x > COLS + 1 || b.y < -1 || b.y > ROWS + 1) {
+            if (used || b.life <= 0 || b.x < -1 || b.x > COLS+1 || b.y < -1 || b.y > ROWS+1) {
                 bullets.splice(i, 1);
             }
         }
 
-        // --- Столкновение с игроком ---
+        // Столкновение
         for (let i = enemies.length - 1; i >= 0; i--) {
             const e = enemies[i];
-            const dx4 = player.x - e.x;
-            const dy4 = player.y - e.y;
-            const hitDist = e.type === 'caine' ? 1.5 : 1.0;
-            if (dx4 * dx4 + dy4 * dy4 < hitDist) {
+            const dx4 = player.x - e.x, dy4 = player.y - e.y;
+            const hitDist = e.type === 'caine' ? 1.8 : 1.2;
+            if (dx4*dx4 + dy4*dy4 < hitDist) {
                 hp--;
                 enemies.splice(i, 1);
                 updateUI();
-                if (hp <= 0) {
-                    gameOver = true;
-                    hp = 0;
-                    updateUI();
-                }
+                if (hp <= 0) { gameOver = true; hp = 0; updateUI(); }
                 break;
             }
         }
@@ -415,190 +565,79 @@
     }
 
     // ============================================================
-    //  РИСОВКА (узнаваемые персонажи)
+    //  ОТРИСОВКА
     // ============================================================
     function draw() {
-        ctx.clearRect(0, 0, SIZE, SIZE);
+        ctx.clearRect(0, 0, W, H);
 
-        // --- ФОН: цифровой цирк ---
-        // Полосы как в сериале
-        const grad = ctx.createRadialGradient(SIZE/2, SIZE/2, 50, SIZE/2, SIZE/2, 400);
+        // Фон
+        const grad = ctx.createRadialGradient(200, 200, 50, 300, 300, 500);
         grad.addColorStop(0, '#2a1a6a');
-        grad.addColorStop(0.5, '#1a1050');
+        grad.addColorStop(0.4, '#1a1050');
         grad.addColorStop(1, '#0a0820');
         ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, SIZE, SIZE);
+        ctx.fillRect(0, 0, W, H);
 
-        // Цирковые полосы
-        for (let i = 0; i < 20; i++) {
-            const y = i * 24 + (frame * 0.2) % 24;
-            ctx.fillStyle = i % 2 === 0 ? 'rgba(100, 80, 200, 0.05)' : 'rgba(200, 100, 255, 0.03)';
-            ctx.fillRect(0, y, SIZE, 24);
-        }
-
-        // Сетка (цифровой эффект)
-        ctx.strokeStyle = 'rgba(100, 80, 200, 0.06)';
-        ctx.lineWidth = 0.5;
-        for (let i = 0; i <= COLS; i++) {
+        // Цирковые огни
+        for (let i = 0; i < 30; i++) {
+            const x = (i * 20 + frame * 0.2) % W;
+            const y = 20 + Math.sin(i * 0.5 + frame * 0.01) * 10;
+            ctx.fillStyle = `hsla(${i * 12 + frame}, 80%, 60%, 0.08)`;
             ctx.beginPath();
-            ctx.moveTo(i * CELL, 0);
-            ctx.lineTo(i * CELL, SIZE);
-            ctx.stroke();
-        }
-        for (let i = 0; i <= ROWS; i++) {
-            ctx.beginPath();
-            ctx.moveTo(0, i * CELL);
-            ctx.lineTo(SIZE, i * CELL);
-            ctx.stroke();
+            ctx.arc(x, y, 3 + Math.sin(frame * 0.02 + i) * 1.5, 0, Math.PI * 2);
+            ctx.fill();
         }
 
-        // --- РИСУЕМ ВРАГОВ (Джекс и Кейн) ---
+        // Враги
         for (let e of enemies) {
-            const x = e.x * CELL;
-            const y = e.y * CELL;
-            const s = e.type === 'caine' ? 1.6 : 1.2;
-
             if (e.type === 'caine') {
-                // КЕЙН — красный циркач с улыбкой
-                ctx.fillStyle = '#cc3333';
-                ctx.fillRect(x - 4, y - 4, 24*s, 24*s);
-
-                // Глаза
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(x + 4, y + 4, 8*s, 8*s);
-                ctx.fillRect(x + 14*s, y + 4, 8*s, 8*s);
-                ctx.fillStyle = '#000';
-                ctx.fillRect(x + 8*s, y + 6*s, 4*s, 4*s);
-                ctx.fillRect(x + 18*s, y + 6*s, 4*s, 4*s);
-
-                // Шляпа
-                ctx.fillStyle = '#8b0000';
-                ctx.fillRect(x - 2, y - 12*s, 28*s, 8*s);
-                ctx.fillRect(x + 6*s, y - 20*s, 12*s, 10*s);
-
-                // Улыбка
-                ctx.fillStyle = '#ff9999';
-                ctx.fillRect(x + 6*s, y + 14*s, 12*s, 4*s);
-                ctx.fillRect(x + 4*s, y + 16*s, 16*s, 4*s);
-
-                // Бантик
-                ctx.fillStyle = '#ff6b6b';
-                ctx.fillRect(x - 8*s, y - 2*s, 6*s, 6*s);
-                ctx.fillRect(x + 26*s, y - 2*s, 6*s, 6*s);
-
+                drawCaine(e.x, e.y, e.size, e.anim);
             } else {
-                // ДЖЕКС — фиолетовый с глазами
-                ctx.fillStyle = e.color;
-                ctx.fillRect(x, y, 20*s, 20*s);
-
-                // Глаза (большие, как в мультике)
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(x + 2*s, y + 2*s, 8*s, 10*s);
-                ctx.fillRect(x + 10*s, y + 2*s, 8*s, 10*s);
-
-                ctx.fillStyle = '#2a1a4a';
-                ctx.fillRect(x + 4*s, y + 4*s, 4*s, 6*s);
-                ctx.fillRect(x + 12*s, y + 4*s, 4*s, 6*s);
-
-                // Зрачки (бегают)
-                const eyeOff = Math.sin(e.animFrame) * 2;
-                ctx.fillStyle = '#000';
-                ctx.fillRect(x + 6*s + eyeOff, y + 6*s, 3*s, 4*s);
-                ctx.fillRect(x + 14*s + eyeOff, y + 6*s, 3*s, 4*s);
-
-                // Улыбка (кривая)
-                ctx.fillStyle = '#6a3a8a';
-                ctx.fillRect(x + 4*s, y + 14*s, 12*s, 3*s);
-                ctx.fillRect(x + 2*s, y + 15*s, 16*s, 3*s);
-
-                // Рожки
-                ctx.fillStyle = '#6a3a8a';
-                ctx.fillRect(x - 2*s, y - 4*s, 6*s, 6*s);
-                ctx.fillRect(x + 16*s, y - 4*s, 6*s, 6*s);
+                drawJax(e.x, e.y, e.size, e.anim);
             }
         }
 
-        // --- РИСУЕМ ИГРОКА (ПОМНИ) ---
-        const px = player.x * CELL;
-        const py = player.y * CELL;
-        const ps = 1.3;
-
-        // Тело (жёлтое)
-        ctx.fillStyle = '#ffd93d';
-        ctx.fillRect(px - 2, py - 2, 22*ps, 22*ps);
-
-        // Волосы (синие)
-        ctx.fillStyle = '#4a7aff';
-        ctx.fillRect(px - 2, py - 6*ps, 24*ps, 6*ps);
-        ctx.fillRect(px + 2*ps, py - 10*ps, 16*ps, 6*ps);
-
-        // Глаза
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(px + 2*ps, py + 2*ps, 8*ps, 8*ps);
-        ctx.fillRect(px + 12*ps, py + 2*ps, 8*ps, 8*ps);
-
-        ctx.fillStyle = '#2a1a4a';
-        ctx.fillRect(px + 4*ps, py + 4*ps, 4*ps, 5*ps);
-        ctx.fillRect(px + 14*ps, py + 4*ps, 4*ps, 5*ps);
-
-        ctx.fillStyle = '#000';
-        ctx.fillRect(px + 6*ps, py + 5*ps, 2*ps, 4*ps);
-        ctx.fillRect(px + 16*ps, py + 5*ps, 2*ps, 4*ps);
-
-        // Улыбка
-        ctx.fillStyle = '#cc6644';
-        ctx.fillRect(px + 4*ps, py + 14*ps, 14*ps, 3*ps);
-        ctx.fillRect(px + 2*ps, py + 15*ps, 18*ps, 3*ps);
-
-        // Щёки (розовые)
-        ctx.fillStyle = 'rgba(255, 100, 150, 0.3)';
-        ctx.fillRect(px - 2*ps, py + 8*ps, 6*ps, 6*ps);
-        ctx.fillRect(px + 18*ps, py + 8*ps, 6*ps, 6*ps);
-
-        // --- РИСУЕМ ПУЛИ ---
+        // Пули (светящиеся)
         for (let b of bullets) {
-            const bx = b.x * CELL;
-            const by = b.y * CELL;
-            ctx.fillStyle = '#ffd93d';
-            ctx.shadowBlur = 20;
+            const bx = b.x * CELL, by = b.y * CELL;
             ctx.shadowColor = '#ffd93d';
-            ctx.fillRect(bx - 4, by - 4, 8, 8);
-            ctx.fillRect(bx - 2, by - 8, 4, 16);
-            ctx.fillRect(bx - 8, by - 2, 16, 4);
+            ctx.shadowBlur = 30;
+            ctx.fillStyle = '#ffd93d';
+            ctx.beginPath();
+            ctx.arc(bx, by, 6, 0, Math.PI * 2);
+            ctx.fill();
             ctx.shadowBlur = 0;
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(bx, by, 3, 0, Math.PI * 2);
+            ctx.fill();
         }
 
-        // --- GAME OVER ---
+        // Игрок
+        drawPomni(player.x, player.y, player.size);
+
+        // Game Over
         if (gameOver) {
             ctx.fillStyle = 'rgba(10, 8, 30, 0.85)';
-            ctx.fillRect(0, 0, SIZE, SIZE);
+            ctx.fillRect(0, 0, W, H);
 
-            // Цирковая рамка
-            ctx.strokeStyle = '#6a5acd';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(40, 120, SIZE - 80, 160);
-
-            ctx.font = 'bold 32px "Courier New", monospace';
+            ctx.shadowBlur = 40;
+            ctx.shadowColor = '#ff6b9d';
+            ctx.font = 'bold 44px "Segoe UI", Arial, sans-serif';
             ctx.fillStyle = '#ff6b9d';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('🎪 ИГРА ОКОНЧЕНА', SIZE / 2, 190);
+            ctx.fillText('🎪 ИГРА ОКОНЧЕНА', W/2, H/2 - 40);
 
-            ctx.font = '18px "Courier New", monospace';
+            ctx.shadowBlur = 0;
+            ctx.font = '20px "Segoe UI", Arial, sans-serif';
             ctx.fillStyle = '#c8b8ff';
-            ctx.fillText('нажми ↺ чтобы начать снова', SIZE / 2, 240);
+            ctx.fillText('нажми ↺ чтобы начать снова', W/2, H/2 + 50);
 
-            ctx.font = '14px "Courier New", monospace';
+            ctx.font = '16px "Segoe UI", Arial, sans-serif';
             ctx.fillStyle = '#8a7ab5';
-            ctx.fillText(`счёт: ${score}`, SIZE / 2, 280);
+            ctx.fillText(`счёт: ${score}`, W/2, H/2 + 100);
         }
-
-        // --- Подпись ---
-        ctx.font = '10px "Courier New", monospace';
-        ctx.fillStyle = 'rgba(100, 80, 200, 0.3)';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText('ПОМНИ · ДЖЕКС · КЕЙН', 8, SIZE - 6);
     }
 
     // ============================================================
@@ -649,12 +688,9 @@
     // ============================================================
     document.getElementById('restartBtn').addEventListener('click', () => {
         resetGame();
-        player.x = 10;
-        player.y = 18;
-        targetX = player.x;
-        targetY = player.y;
-        enemies = [];
-        bullets = [];
+        player.x = 10; player.y = 18;
+        targetX = player.x; targetY = player.y;
+        enemies = []; bullets = [];
         spawnCounter = 0;
         updateUI();
     });
@@ -664,6 +700,25 @@
     // ============================================================
     resetGame();
     gameLoop();
+
+    // roundRect polyfill для старых браузеров
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+            if (r > w/2) r = w/2;
+            if (r > h/2) r = h/2;
+            this.moveTo(x + r, y);
+            this.lineTo(x + w - r, y);
+            this.quadraticCurveTo(x + w, y, x + w, y + r);
+            this.lineTo(x + w, y + h - r);
+            this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            this.lineTo(x + r, y + h);
+            this.quadraticCurveTo(x, y + h, x, y + h - r);
+            this.lineTo(x, y + r);
+            this.quadraticCurveTo(x, y, x + r, y);
+            this.closePath();
+            return this;
+        };
+    }
 
     if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.ready();

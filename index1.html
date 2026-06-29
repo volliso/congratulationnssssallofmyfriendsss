@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Цифровой цирк · Помни против Джекса</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: #0b0e1a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 12px;
+            margin: 0;
+            touch-action: none;
+        }
+
+        .game-wrapper {
+            background: #141824;
+            padding: 20px 20px 25px;
+            border-radius: 32px;
+            box-shadow: 0 12px 0 #0a0c14, 0 0 0 2px #4f5b8a;
+            max-width: 520px;
+            width: 100%;
+        }
+
+        .game-container {
+            background: #1a1f2e;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: inset 0 0 0 2px #2f3a5a;
+        }
+
+        /* === ХЕДЕР === */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 6px 14px 6px;
+            color: #b7c7f0;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 0 #0a0c14;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .score-box {
+            background: #0f131f;
+            padding: 6px 18px;
+            border-radius: 40px;
+            border: 2px solid #3f4b72;
+            color: #f5e97b;
+            font-size: 22px;
+            box-shadow: inset 0 -3px 0 #232b42;
+        }
+
+        .restart-btn {
+            background: #2d3653;
+            border: none;
+            color: #d3defa;
+            font-size: 20px;
+            padding: 4px 18px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #151b2b, 0 2px 0 #4d5b83;
+            transition: 0.07s ease;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #4d5b83;
+        }
+
+        .restart-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #151b2b;
+        }
+
+        /* === ХОЛСТ (ПИКСЕЛЬНАЯ ИГРА) === */
+        canvas {
+            display: block;
+            width: 100%;
+            aspect-ratio: 400 / 400;
+            background: #0f131f;
+            border-radius: 16px;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+            border: 3px solid #2b3450;
+            box-shadow: inset 0 0 0 2px #151b2b, 0 6px 0 #0a0c14;
+            touch-action: none;
+            cursor: crosshair;
+        }
+
+        /* === ИНФО ПОД ИГРОЙ === */
+        .controls-hint {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 6px 0 6px;
+            color: #6e7da3;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .controls-hint span {
+            background: #101522;
+            padding: 4px 14px;
+            border-radius: 30px;
+            border: 1px solid #2b3450;
+        }
+
+        .hp-bar {
+            color: #ff7a8b;
+        }
+
+        /* === АДАПТИВ === */
+        @media (max-width: 480px) {
+            .game-wrapper {
+                padding: 12px;
+            }
+            .header {
+                font-size: 15px;
+            }
+            .score-box {
+                font-size: 18px;
+                padding: 4px 14px;
+            }
+            .restart-btn {
+                font-size: 16px;
+                padding: 2px 14px;
+            }
+            .controls-hint {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-wrapper">
+    <div class="game-container">
+
+        <!-- ХЕДЕР -->
+        <div class="header">
+            <span>🎪 ЦИРК</span>
+            <span class="score-box">🎯 <span id="scoreDisplay">0</span></span>
+            <button class="restart-btn" id="restartBtn">↺</button>
+        </div>
+
+        <!-- ХОЛСТ 400x400 -->
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+        <!-- ПОДСКАЗКИ -->
+        <div class="controls-hint">
+            <span>🖱️ клик / тап</span>
+            <span class="hp-bar">❤️ <span id="hpDisplay">5</span></span>
+            <span>🎯 <span id="enemyCount">0</span></span>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    //  УДИВИТЕЛЬНЫЙ ЦИФРОВОЙ ЦИРК · ПОМНИ ПРОТИВ ДЖЕКСА
+    //  Пиксельная стрелялка  (HTML5 Canvas)
+    // ============================================================
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false; // пиксельный стиль
+
+    // --- ЭЛЕМЕНТЫ UI ---
+    const scoreSpan = document.getElementById('scoreDisplay');
+    const hpSpan = document.getElementById('hpDisplay');
+    const enemyCountSpan = document.getElementById('enemyCount');
+
+    // --- РАЗМЕРЫ ---
+    const SIZE = 400;
+    const CELL = 20;        // пиксель = 20x20
+    const COLS = 20;
+    const ROWS = 20;
+
+    // --- ИГРОВЫЕ ПЕРЕМЕННЫЕ ---
+    let score = 0;
+    let hp = 5;
+    let gameOver = false;
+
+    // --- ИГРОК (ПОМНИ) ---
+    const player = {
+        x: 10,
+        y: 18,
+        color: '#f5d742'   // жёлтый
+    };
+
+    // --- ВРАГИ (ДЖЕКСЫ) ---
+    let enemies = [];
+
+    // --- ПУЛИ ---
+    let bullets = [];
+
+    // --- ТАЙМЕР СПАВНА ---
+    let spawnCounter = 0;
+    const SPAWN_DELAY = 22;    // кадров между появлением
+
+    // --- УПРАВЛЕНИЕ (для мобилок) ---
+    let targetX = player.x;
+    let targetY = player.y;
+
+    // ============================================================
+    //  ИНИЦИАЛИЗАЦИЯ / РЕСТАРТ
+    // ============================================================
+    function resetGame() {
+        score = 0;
+        hp = 5;
+        gameOver = false;
+        enemies = [];
+        bullets = [];
+        spawnCounter = 0;
+        player.x = 10;
+        player.y = 18;
+        targetX = player.x;
+        targetY = player.y;
+        updateUI();
+    }
+
+    // ============================================================
+    //  СПАВН ДЖЕКСА
+    // ============================================================
+    function spawnEnemy() {
+        if (gameOver) return;
+        // появляется с краю (слева или справа)
+        const side = Math.random() < 0.5 ? 0 : 1; // 0 - лево, 1 - право
+        let x, y;
+        if (side === 0) {
+            x = 0;
+            y = Math.floor(Math.random() * (ROWS - 4)) + 2;
+        } else {
+            x = COLS - 1;
+            y = Math.floor(Math.random() * (ROWS - 4)) + 2;
+        }
+        // цвет джекса — фиолетово-розовый
+        const hue = 280 + Math.floor(Math.random() * 30);
+        enemies.push({
+            x: x,
+            y: y,
+            color: `hsl(${hue}, 75%, 60%)`,
+            hp: 1,
+            moveTimer: 0
+        });
+    }
+
+    // ============================================================
+    //  ВЫСТРЕЛ (ПО КЛИКУ / ТАПУ)
+    // ============================================================
+    function shootAt(targetX, targetY) {
+        if (gameOver) return;
+
+        // пуля летит из позиции игрока в точку клика
+        const dx = targetX - player.x;
+        const dy = targetY - player.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 0.1) return;
+
+        const speed = 6;
+        const vx = (dx / dist) * speed;
+        const vy = (dy / dist) * speed;
+
+        bullets.push({
+            x: player.x + 0.5,
+            y: player.y + 0.5,
+            vx: vx,
+            vy: vy,
+            life: 40,
+            color: '#ffd966'
+        });
+    }
+
+    // ============================================================
+    //  UI ОБНОВЛЕНИЕ
+    // ============================================================
+    function updateUI() {
+        scoreSpan.textContent = score;
+        hpSpan.textContent = hp;
+        enemyCountSpan.textContent = enemies.length;
+    }
+
+    // ============================================================
+    //  ОБНОВЛЕНИЕ ИГРЫ (ЛОГИКА)
+    // ============================================================
+    function update() {
+        if (gameOver) return;
+
+        // --- 1. Движение игрока (к цели) ---
+        const dx = targetX - player.x;
+        const dy = targetY - player.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 0.2) {
+            const step = 0.12;
+            player.x += (dx / dist) * step;
+            player.y += (dy / dist) * step;
+        }
+        // ограничиваем, чтобы не вылезал
+        player.x = Math.max(0.3, Math.min(COLS - 0.7, player.x));
+        player.y = Math.max(0.3, Math.min(ROWS - 0.7, player.y));
+
+        // --- 2. Спавн врагов ---
+        spawnCounter++;
+        if (spawnCounter >= SPAWN_DELAY) {
+            spawnCounter = 0;
+            if (enemies.length < 12) {
+                spawnEnemy();
+            }
+        }
+
+        // --- 3. Движение врагов (к игроку) ---
+        for (let e of enemies) {
+            const dx2 = player.x - e.x;
+            const dy2 = player.y - e.y;
+            const d = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+            if (d > 0.3) {
+                const spd = 0.045;
+                e.x += (dx2 / d) * spd;
+                e.y += (dy2 / d) * spd;
+            }
+            // ограничиваем
+            e.x = Math.max(0, Math.min(COLS - 0.1, e.x));
+            e.y = Math.max(0, Math.min(ROWS - 0.1, e.y));
+        }
+
+        // --- 4. Пули ---
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            const b = bullets[i];
+            b.x += b.vx * 0.08;
+            b.y += b.vy * 0.08;
+            b.life -= 1;
+
+            // проверка попадания во врага
+            let bulletUsed = false;
+            for (let j = enemies.length - 1; j >= 0; j--) {
+                const e = enemies[j];
+                const dx3 = b.x - e.x;
+                const dy3 = b.y - e.y;
+                if (dx3 * dx3 + dy3 * dy3 < 0.8) {
+                    // попадание!
+                    enemies.splice(j, 1);
+                    score += 10;
+                    bulletUsed = true;
+                    updateUI();
+                    break;
+                }
+            }
+
+            if (bulletUsed || b.life <= 0 || b.x < -1 || b.x > COLS + 1 || b.y < -1 || b.y > ROWS + 1) {
+                bullets.splice(i, 1);
+            }
+        }
+
+        // --- 5. Столкновение игрока с врагом (урон) ---
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            const e = enemies[i];
+            const dx4 = player.x - e.x;
+            const dy4 = player.y - e.y;
+            if (dx4 * dx4 + dy4 * dy4 < 0.7) {
+                // урон
+                hp--;
+                enemies.splice(i, 1);
+                updateUI();
+                if (hp <= 0) {
+                    gameOver = true;
+                    hp = 0;
+                    updateUI();
+                }
+                break;
+            }
+        }
+
+        // --- 6. Если врагов слишком много — отнимаем жизнь (опасность) ---
+        if (enemies.length > 18) {
+            hp--;
+            enemies = enemies.slice(0, 14);
+            updateUI();
+            if (hp <= 0) {
+                gameOver = true;
+                hp = 0;
+                updateUI();
+            }
+        }
+
+        // обновляем счётчик врагов
+        enemyCountSpan.textContent = enemies.length;
+    }
+
+    // ============================================================
+    //  ОТРИСОВКА (ПИКСЕЛЬНЫЙ СТИЛЬ)
+    // ============================================================
+    function draw() {
+        ctx.clearRect(0, 0, SIZE, SIZE);
+
+        // --- фон (пиксельная сетка) ---
+        ctx.fillStyle = '#141b2b';
+        ctx.fillRect(0, 0, SIZE, SIZE);
+
+        // сетка (очень слабая)
+        ctx.strokeStyle = '#25304a';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i <= COLS; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i * CELL, 0);
+            ctx.lineTo(i * CELL, SIZE);
+            ctx.stroke();
+        }
+        for (let i = 0; i <= ROWS; i++) {
+            ctx.beginPath();
+            ctx.moveTo(0, i * CELL);
+            ctx.lineTo(SIZE, i * CELL);
+            ctx.stroke();
+        }
+
+        // --- рисуем врагов (Джексы) ---
+        for (let e of enemies) {
+            const x = e.x * CELL;
+            const y = e.y * CELL;
+            ctx.fillStyle = e.color;
+            // пиксельный "монстр" 2x2 клетки
+            ctx.fillRect(x, y, CELL, CELL);
+            ctx.fillRect(x + CELL, y, CELL, CELL);
+            ctx.fillRect(x, y + CELL, CELL, CELL);
+            ctx.fillRect(x + CELL, y + CELL, CELL, CELL);
+            // глаза (белые точки)
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(x + 4, y + 4, 6, 6);
+            ctx.fillRect(x + CELL + 4, y + 4, 6, 6);
+            ctx.fillStyle = '#000';
+            ctx.fillRect(x + 8, y + 6, 4, 4);
+            ctx.fillRect(x + CELL + 8, y + 6, 4, 4);
+            // улыбка (пиксельная)
+            ctx.fillStyle = '#ffb3c6';
+            ctx.fillRect(x + 6, y + CELL - 6, 8, 4);
+            ctx.fillRect(x + 4, y + CELL - 4, 12, 4);
+        }
+
+        // --- рисуем игрока (Помни) ---
+        const px = player.x * CELL;
+        const py = player.y * CELL;
+        // тело (жёлтый квадрат)
+        ctx.fillStyle = '#f5d742';
+        ctx.fillRect(px, py, CELL, CELL);
+        ctx.fillRect(px + CELL, py, CELL, CELL);
+        ctx.fillRect(px, py + CELL, CELL, CELL);
+        ctx.fillRect(px + CELL, py + CELL, CELL, CELL);
+        // лицо Помни (глаза)
+        ctx.fillStyle = '#0b0e1a';
+        ctx.fillRect(px + 4, py + 4, 6, 6);
+        ctx.fillRect(px + CELL + 4, py + 4, 6, 6);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(px + 6, py + 6, 3, 3);
+        ctx.fillRect(px + CELL + 6, py + 6, 3, 3);
+        // улыбка
+        ctx.fillStyle = '#b34a1a';
+        ctx.fillRect(px + 6, py + CELL - 6, 8, 4);
+        ctx.fillRect(px + 4, py + CELL - 4, 12, 4);
+
+        // --- рисуем пули ---
+        for (let b of bullets) {
+            const bx = b.x * CELL;
+            const by = b.y * CELL;
+            ctx.fillStyle = b.color;
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#ffd966';
+            ctx.fillRect(bx - 3, by - 3, 8, 8);
+            ctx.fillRect(bx - 1, by - 5, 4, 12);
+            ctx.fillRect(bx - 5, by - 1, 12, 4);
+            ctx.shadowBlur = 0;
+        }
+
+        // --- если Game Over ---
+        if (gameOver) {
+            ctx.fillStyle = 'rgba(10, 8, 20, 0.8)';
+            ctx.fillRect(0, 0, SIZE, SIZE);
+            ctx.font = 'bold 26px "Courier New", monospace';
+            ctx.fillStyle = '#ff7a8b';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('💀 ИГРА ОКОНЧЕНА', SIZE / 2, SIZE / 2 - 20);
+            ctx.font = '18px "Courier New", monospace';
+            ctx.fillStyle = '#b7c7f0';
+            ctx.fillText('нажми ↺ чтобы начать снова', SIZE / 2, SIZE / 2 + 40);
+        }
+
+        // --- подпись пиксельная ---
+        ctx.font = '10px "Courier New", monospace';
+        ctx.fillStyle = '#4f5b7a';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('ПОМНИ · ДЖЕКС', 8, SIZE - 6);
+    }
+
+    // ============================================================
+    //  ИГРОВОЙ ЦИКЛ
+    // ============================================================
+    function gameLoop() {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // ============================================================
+    //  ОБРАБОТКА КЛИКОВ / ТАПОВ
+    // ============================================================
+    function handleCanvasClick(e) {
+        if (gameOver) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        let clientX, clientY;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+            e.preventDefault();
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+
+        const canvasX = (clientX - rect.left) * scaleX;
+        const canvasY = (clientY - rect.top) * scaleY;
+
+        const gridX = canvasX / CELL;
+        const gridY = canvasY / CELL;
+
+        // двигаем игрока к цели (плавно)
+        targetX = Math.max(0.3, Math.min(COLS - 0.7, gridX));
+        targetY = Math.max(0.3, Math.min(ROWS - 0.7, gridY));
+
+        // стреляем в точку клика
+        shootAt(gridX, gridY);
+    }
+
+    canvas.addEventListener('click', handleCanvasClick);
+    canvas.addEventListener('touchstart', handleCanvasClick, { passive: false });
+
+    // ============================================================
+    //  РЕСТАРТ
+    // ============================================================
+    document.getElementById('restartBtn').addEventListener('click', () => {
+        resetGame();
+        // сбрасываем позицию игрока
+        player.x = 10;
+        player.y = 18;
+        targetX = player.x;
+        targetY = player.y;
+        enemies = [];
+        bullets = [];
+        spawnCounter = 0;
+        updateUI();
+    });
+
+    // ============================================================
+    //  ЗАПУСК
+    // ============================================================
+    resetGame();
+    gameLoop();
+
+    // Telegram WebApp (если внутри)
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+    }
+</script>
+
+</body>
+</html>

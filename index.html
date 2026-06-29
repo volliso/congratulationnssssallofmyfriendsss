@@ -3,727 +3,819 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Цифровой цирк · 3D стиль</title>
+    <title>Помни стреляет в Джекса</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background: #0a0815;
-            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a1a;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            padding: 12px;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            max-height: 800px;
+            background: linear-gradient(135deg, #1a0533 0%, #2d1b69 30%, #8b2f97 60%, #ff6b9d 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(255, 107, 157, 0.3);
             touch-action: none;
         }
 
-        .game-wrapper {
-            background: linear-gradient(145deg, #1a1040, #0d0a2a);
-            padding: 20px;
-            border-radius: 32px;
-            box-shadow: 0 12px 0 #05051a, 0 0 60px rgba(100, 80, 255, 0.15);
-            max-width: 600px;
-            width: 100%;
-            border: 2px solid #6a5acd;
+        /* Цифровой шум на фоне */
+        #game-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 107, 157, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(107, 107, 255, 0.15) 0%, transparent 50%),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .game-container {
-            background: linear-gradient(180deg, #1a1050, #0a0820);
-            border-radius: 20px;
-            padding: 16px;
-            box-shadow: inset 0 0 0 2px #3a2f7a;
-        }
-
-        .header {
+        /* Верхняя панель */
+        #header {
+            position: relative;
+            z-index: 10;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 4px 14px 4px;
-            color: #c8b8ff;
-            font-size: 16px;
-            font-weight: 700;
-            flex-wrap: wrap;
-            gap: 8px;
+            padding: 15px 20px 10px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%);
         }
 
-        .header-title {
-            font-size: 20px;
-            background: linear-gradient(90deg, #ff6b9d, #c084fc, #6b9dff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 900;
-        }
-
-        .score-box {
-            background: rgba(20, 15, 50, 0.8);
-            padding: 6px 20px;
-            border-radius: 40px;
-            border: 2px solid #6a5acd;
-            color: #f5e97b;
+        #score-display {
+            color: #fff;
             font-size: 24px;
-            backdrop-filter: blur(4px);
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.8), 0 0 40px rgba(255, 107, 157, 0.4);
+            background: rgba(0,0,0,0.4);
+            padding: 8px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .restart-btn {
-            background: linear-gradient(145deg, #3a2f7a, #2a1f5a);
-            border: none;
-            color: #d3defa;
-            font-size: 22px;
-            padding: 4px 20px;
-            border-radius: 40px;
+        #score-display span {
+            color: #ff6b9d;
+        }
+
+        #restart-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 16px;
             cursor: pointer;
-            box-shadow: 0 5px 0 #15102a;
-            transition: 0.07s ease;
-            border: 2px solid #6a5acd;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            touch-action: manipulation;
         }
 
-        .restart-btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 1px 0 #15102a;
+        #restart-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 107, 157, 0.3);
         }
 
-        canvas {
-            display: block;
+        /* Игровая зона */
+        #game-area {
+            position: relative;
+            z-index: 1;
             width: 100%;
-            aspect-ratio: 1 / 1;
-            background: radial-gradient(ellipse at 30% 40%, #2a1a6a, #0a0820);
-            border-radius: 16px;
-            border: 3px solid #4a3f8a;
-            box-shadow: inset 0 0 60px rgba(100, 80, 255, 0.08), 0 6px 0 #05051a;
+            height: calc(100% - 80px);
+            overflow: hidden;
             touch-action: none;
             cursor: crosshair;
         }
 
-        .controls-hint {
+        /* Помни (стрелок) - внизу по центру */
+        #pomni {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 100px;
+            z-index: 5;
+            transition: transform 0.1s;
+            pointer-events: none;
+        }
+
+        #pomni img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 30px rgba(255, 107, 157, 0.5));
+            animation: pomniFloat 2s ease-in-out infinite;
+        }
+
+        @keyframes pomniFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Джекс (мишень) */
+        #jax {
+            position: absolute;
+            width: 70px;
+            height: 90px;
+            z-index: 3;
+            cursor: pointer;
+            touch-action: none;
+            transition: transform 0.05s;
+            pointer-events: auto;
+            display: none;
+        }
+
+        #jax img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 20px rgba(180, 100, 255, 0.6));
+            animation: jaxIdle 0.8s ease-in-out infinite;
+        }
+
+        @keyframes jaxIdle {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.05) rotate(-3deg); }
+            75% { transform: scale(1.05) rotate(3deg); }
+        }
+
+        #jax.hit {
+            animation: hitEffect 0.3s forwards;
+        }
+
+        @keyframes hitEffect {
+            0% { transform: scale(1.2); opacity: 1; }
+            50% { transform: scale(1.5) rotate(20deg); opacity: 0.7; }
+            100% { transform: scale(0) rotate(40deg); opacity: 0; }
+        }
+
+        #jax.miss {
+            animation: missEffect 0.3s forwards;
+        }
+
+        @keyframes missEffect {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.3); opacity: 0; }
+        }
+
+        /* Эффект выстрела */
+        .shot-effect {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, #ff6b9d, #ff2d55, transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 4;
+            animation: shotFade 0.4s forwards;
+        }
+
+        @keyframes shotFade {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Стартовый экран */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 20;
             display: flex;
-            justify-content: space-between;
-            padding: 14px 4px 0 4px;
-            color: #8a7ab5;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(10, 10, 26, 0.85);
+            backdrop-filter: blur(15px);
+            padding: 30px;
+            text-align: center;
+        }
+
+        #start-screen h1 {
+            color: #ff6b9d;
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 107, 157, 0.5);
+        }
+
+        #start-screen .subtitle {
+            color: #b388ff;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        #start-screen .characters {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        #start-screen .char-item {
+            text-align: center;
+        }
+
+        #start-screen .char-item .emoji {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #start-screen .char-item .name {
+            color: #fff;
             font-size: 14px;
-            font-weight: 600;
-            flex-wrap: wrap;
-            gap: 6px;
+            opacity: 0.8;
         }
 
-        .controls-hint span {
-            background: rgba(20, 15, 50, 0.6);
-            padding: 4px 16px;
-            border-radius: 30px;
-            border: 1px solid #3a2f7a;
-            backdrop-filter: blur(4px);
+        #start-btn {
+            background: linear-gradient(135deg, #ff6b9d, #ff2d55);
+            border: none;
+            color: #fff;
+            padding: 16px 50px;
+            border-radius: 50px;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 40px rgba(255, 107, 157, 0.4);
+            transition: all 0.3s;
+            touch-action: manipulation;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        .hp-bar { color: #ff7a8b; }
-        .enemy-count { color: #c084fc; }
+        #start-btn:active {
+            transform: scale(0.95);
+        }
 
-        @media (max-width: 480px) {
-            .game-wrapper { padding: 12px; }
-            .header-title { font-size: 16px; }
-            .score-box { font-size: 18px; padding: 4px 14px; }
-            .restart-btn { font-size: 18px; padding: 2px 14px; }
-            .controls-hint { font-size: 12px; }
+        /* Игровой оверлей */
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 15;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            text-align: center;
+        }
+
+        #game-over.show {
+            display: flex;
+        }
+
+        #game-over h2 {
+            color: #ff6b9d;
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        #game-over .final-score {
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        #game-over .final-score span {
+            color: #ff6b9d;
+            font-size: 48px;
+        }
+
+        #game-over .sub {
+            color: #b388ff;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        #game-over .play-again-btn {
+            background: linear-gradient(135deg, #b388ff, #7c4dff);
+            border: none;
+            color: #fff;
+            padding: 14px 40px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(179, 136, 255, 0.4);
+            transition: all 0.3s;
+            touch-action: manipulation;
+        }
+
+        #game-over .play-again-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 500px) {
+            #game-container {
+                max-height: 100vh;
+                border-radius: 0;
+            }
+            #pomni {
+                width: 60px;
+                height: 75px;
+                bottom: 10px;
+            }
+            #jax {
+                width: 55px;
+                height: 70px;
+            }
+            #score-display {
+                font-size: 18px;
+                padding: 5px 14px;
+            }
+            #start-screen h1 {
+                font-size: 28px;
+            }
+            #start-screen .char-item .emoji {
+                font-size: 48px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #pomni {
+                width: 50px;
+                height: 63px;
+            }
+            #jax {
+                width: 45px;
+                height: 58px;
+            }
+            #score-display {
+                font-size: 15px;
+                padding: 4px 12px;
+            }
+            #start-btn {
+                padding: 14px 30px;
+                font-size: 18px;
+            }
+        }
+
+        /* Для высоких экранов */
+        @media (min-height: 900px) {
+            #pomni {
+                width: 100px;
+                height: 125px;
+            }
+            #jax {
+                width: 85px;
+                height: 105px;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="game-wrapper">
-    <div class="game-container">
-        <div class="header">
-            <span class="header-title">🎪 ЦИФРОВОЙ ЦИРК</span>
-            <span class="score-box">⭐ <span id="scoreDisplay">0</span></span>
-            <button class="restart-btn" id="restartBtn">↺</button>
+<div id="game-container">
+    <!-- Верхняя панель -->
+    <div id="header">
+        <div id="score-display">🎯 <span id="score">0</span></div>
+        <button id="restart-btn">🔄 Рестарт</button>
+    </div>
+
+    <!-- Игровая зона -->
+    <div id="game-area">
+        <!-- Помни -->
+        <div id="pomni">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 250'%3E%3Cdefs%3E%3CradialGradient id='eyeGrad' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' style='stop-color:%23ff6b9d'/%3E%3Cstop offset='50%25' style='stop-color:%234a00ff'/%3E%3Cstop offset='100%25' style='stop-color:%23ff2d55'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='200' height='250' rx='40' fill='%23ff2d55'/%3E%3Crect y='60' width='200' height='140' rx='20' fill='%233333cc'/%3E%3Ccircle cx='70' cy='120' r='30' fill='white'/%3E%3Ccircle cx='130' cy='120' r='30' fill='white'/%3E%3Ccircle cx='70' cy='120' r='18' fill='url(%23eyeGrad)'/%3E%3Ccircle cx='130' cy='120' r='18' fill='url(%23eyeGrad)'/%3E%3Ccircle cx='63' cy='113' r='6' fill='white'/%3E%3Ccircle cx='123' cy='113' r='6' fill='white'/%3E%3Cpath d='M75 170 Q100 190 125 170' stroke='%23ff6b9d' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3Crect x='80' y='190' width='40' height='25' rx='5' fill='%23ff6b9d'/%3E%3C/svg%3E" alt="Помни">
         </div>
 
-        <canvas id="gameCanvas" width="600" height="600"></canvas>
-
-        <div class="controls-hint">
-            <span>🖱️ клик / тап</span>
-            <span class="hp-bar">❤️ <span id="hpDisplay">5</span></span>
-            <span class="enemy-count">👾 <span id="enemyCount">0</span></span>
+        <!-- Джекс (появляется динамически) -->
+        <div id="jax">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 250'%3E%3Crect width='200' height='250' rx='50' fill='%23b388ff'/%3E%3Cellipse cx='100' cy='80' rx='60' ry='50' fill='%239c6eff'/%3E%3Cellipse cx='60' cy='50' rx='25' ry='35' fill='%23b388ff'/%3E%3Cellipse cx='140' cy='50' rx='25' ry='35' fill='%23b388ff'/%3E%3Ccircle cx='75' cy='80' r='15' fill='white'/%3E%3Ccircle cx='125' cy='80' r='15' fill='white'/%3E%3Ccircle cx='75' cy='80' r='8' fill='%23ff2d55'/%3E%3Ccircle cx='125' cy='80' r='8' fill='%23ff2d55'/%3E%3Ccircle cx='70' cy='75' r='4' fill='white'/%3E%3Ccircle cx='120' cy='75' r='4' fill='white'/%3E%3Crect x='50' y='110' width='100' height='30' rx='10' fill='%23ff6b9d'/%3E%3Crect x='30' y='140' width='30' height='80' rx='10' fill='%239c6eff'/%3E%3Crect x='140' y='140' width='30' height='80' rx='10' fill='%239c6eff'/%3E%3Crect x='10' y='200' width='40' height='30' rx='8' fill='%23ffd54f'/%3E%3Crect x='150' y='200' width='40' height='30' rx='8' fill='%23ffd54f'/%3E%3C/svg%3E" alt="Джекс">
         </div>
+    </div>
+
+    <!-- Стартовый экран -->
+    <div id="start-screen">
+        <h1>🎪 Цифровой Цирк</h1>
+        <p class="subtitle">Помни стреляет в Джекса!</p>
+        <div class="characters">
+            <div class="char-item">
+                <span class="emoji">🎭</span>
+                <span class="name">Помни</span>
+            </div>
+            <div class="char-item">
+                <span class="emoji">🐰</span>
+                <span class="name">Джекс</span>
+            </div>
+        </div>
+        <button id="start-btn">🔫 Начать игру</button>
+        <p style="color: rgba(255,255,255,0.3); font-size: 12px; margin-top: 20px;">Кликни по Джексу, чтобы выстрелить</p>
+    </div>
+
+    <!-- Экран окончания -->
+    <div id="game-over">
+        <h2>🎯 Время вышло!</h2>
+        <p class="final-score">Очков: <span id="final-score">0</span></p>
+        <p class="sub">Помни отомстила за все шалости!</p>
+        <button class="play-again-btn" id="play-again-btn">🔄 Играть снова</button>
     </div>
 </div>
 
 <script>
-    // ============================================================
-    //  УДИВИТЕЛЬНЫЙ ЦИФРОВОЙ ЦИРК - 3D СТИЛЬ
-    //  Максимально приближенный к оригиналу
-    // ============================================================
+    (function() {
+        'use strict';
 
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const W = 600, H = 600;
+        // --- DOM элементы ---
+        const gameArea = document.getElementById('game-area');
+        const jax = document.getElementById('jax');
+        const scoreDisplay = document.getElementById('score');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const playAgainBtn = document.getElementById('play-again-btn');
 
-    const scoreSpan = document.getElementById('scoreDisplay');
-    const hpSpan = document.getElementById('hpDisplay');
-    const enemyCountSpan = document.getElementById('enemyCount');
+        // --- Переменные игры ---
+        let score = 0;
+        let gameRunning = false;
+        let gameTimer = null;
+        let spawnTimer = null;
+        let timeLeft = 30; // секунд
+        let isJaxVisible = false;
+        let jaxTimeout = null;
 
-    // --- ИГРОВЫЕ ПАРАМЕТРЫ ---
-    let score = 0, hp = 5, gameOver = false, frame = 0;
-    const CELL = 30;
-    const COLS = 20, ROWS = 20;
-
-    // --- ПЕРСОНАЖИ ---
-    const player = { x: 10, y: 18, size: 1.2 };
-    let enemies = [];
-    let bullets = [];
-    let spawnCounter = 0;
-    const SPAWN_DELAY = 18;
-    let targetX = player.x, targetY = player.y;
-
-    // ============================================================
-    //  РЕСТАРТ
-    // ============================================================
-    function resetGame() {
-        score = 0; hp = 5; gameOver = false;
-        enemies = []; bullets = [];
-        spawnCounter = 0;
-        player.x = 10; player.y = 18;
-        targetX = player.x; targetY = player.y;
-        frame = 0;
-        updateUI();
-    }
-
-    // ============================================================
-    //  СПАВН
-    // ============================================================
-    function spawnEnemy() {
-        if (gameOver) return;
-        const side = Math.random() < 0.5 ? 0 : 1;
-        let x = side === 0 ? 0.5 : COLS - 0.5;
-        let y = Math.floor(Math.random() * (ROWS - 4)) + 2;
-
-        const isBoss = Math.random() < 0.12 && enemies.length > 3;
-        enemies.push({
-            x, y,
-            type: isBoss ? 'caine' : 'jax',
-            hp: isBoss ? 5 : 1,
-            size: isBoss ? 2.0 : 1.3,
-            anim: Math.random() * 100,
-            hitTimer: 0
-        });
-    }
-
-    // ============================================================
-    //  ВЫСТРЕЛ
-    // ============================================================
-    function shootAt(tx, ty) {
-        if (gameOver) return;
-        const dx = tx - player.x, dy = ty - player.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 0.1) return;
-        const speed = 8;
-        bullets.push({
-            x: player.x + 0.5, y: player.y + 0.5,
-            vx: (dx/dist) * speed, vy: (dy/dist) * speed,
-            life: 50
-        });
-    }
-
-    // ============================================================
-    //  UI
-    // ============================================================
-    function updateUI() {
-        scoreSpan.textContent = score;
-        hpSpan.textContent = hp;
-        enemyCountSpan.textContent = enemies.length;
-    }
-
-    // ============================================================
-    //  РИСОВАНИЕ ПЕРСОНАЖЕЙ (3D-стиль)
-    // ============================================================
-
-    // --- ПОМНИ (3D-стиль) ---
-    function drawPomni(x, y, size) {
-        const s = size * 22;
-        const cx = x * CELL, cy = y * CELL;
-
-        // Тень
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 20;
-        ctx.shadowOffsetY = 4;
-
-        // Тело с градиентом (объём)
-        const grad = ctx.createRadialGradient(cx-4, cy-4, 2, cx, cy, s);
-        grad.addColorStop(0, '#ffe066');
-        grad.addColorStop(0.5, '#ffd93d');
-        grad.addColorStop(1, '#e6b800');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.roundRect(cx - s/2, cy - s/2, s, s, 6);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetY = 0;
-
-        // Волосы (синие, объёмные)
-        const hairGrad = ctx.createLinearGradient(cx, cy - s/2, cx, cy);
-        hairGrad.addColorStop(0, '#6b9dff');
-        hairGrad.addColorStop(1, '#4a7aff');
-        ctx.fillStyle = hairGrad;
-        ctx.beginPath();
-        ctx.roundRect(cx - s/2 - 2, cy - s/2 - 10, s + 4, 18, 4);
-        ctx.fill();
-
-        // Чёлка
-        ctx.fillStyle = '#4a7aff';
-        ctx.beginPath();
-        ctx.roundRect(cx - s/2 + 6, cy - s/2 - 14, s - 12, 10, 4);
-        ctx.fill();
-
-        // Глаза (белки)
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = 'rgba(255,255,255,0.2)';
-        ctx.beginPath();
-        ctx.ellipse(cx - 7, cy - 4, 8, 9, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(cx + 7, cy - 4, 8, 9, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
-
-        // Зрачки
-        ctx.fillStyle = '#2a1a4a';
-        ctx.beginPath();
-        ctx.arc(cx - 5, cy - 2, 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(cx + 9, cy - 2, 5, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Блик в глазах
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(cx - 7, cy - 6, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(cx + 7, cy - 6, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Улыбка
-        ctx.strokeStyle = '#cc6644';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.arc(cx, cy + 4, 10, 0.1, Math.PI - 0.1);
-        ctx.stroke();
-
-        // Щёки (румянец)
-        ctx.fillStyle = 'rgba(255, 100, 150, 0.25)';
-        ctx.beginPath();
-        ctx.ellipse(cx - 14, cy + 4, 6, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(cx + 14, cy + 4, 6, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    // --- ДЖЕКС (3D-стиль) ---
-    function drawJax(x, y, size, anim) {
-        const s = size * 22;
-        const cx = x * CELL, cy = y * CELL;
-        const bounce = Math.sin(anim) * 2;
-
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 20;
-        ctx.shadowOffsetY = 4;
-
-        // Тело с градиентом
-        const grad = ctx.createRadialGradient(cx-4, cy-4+bounce, 2, cx, cy+bounce, s);
-        grad.addColorStop(0, '#d4a0ff');
-        grad.addColorStop(0.4, '#b084f0');
-        grad.addColorStop(1, '#7a4ac0');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.roundRect(cx - s/2, cy - s/2 + bounce, s, s, 6);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetY = 0;
-
-        // Глаза (большие)
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = 'rgba(255,255,255,0.15)';
-        ctx.beginPath();
-        ctx.ellipse(cx - 8, cy - 2 + bounce, 10, 12, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(cx + 8, cy - 2 + bounce, 10, 12, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
-
-        // Зрачки (следят за игроком)
-        const eyeOff = Math.sin(anim * 0.5) * 3;
-        ctx.fillStyle = '#2a1a4a';
-        ctx.beginPath();
-        ctx.arc(cx - 6 + eyeOff, cy + bounce, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(cx + 10 + eyeOff, cy + bounce, 6, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(cx - 4 + eyeOff, cy + 2 + bounce, 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(cx + 12 + eyeOff, cy + 2 + bounce, 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Улыбка
-        ctx.strokeStyle = '#6a3a8a';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(cx, cy + 8 + bounce, 12, 0.2, Math.PI - 0.2);
-        ctx.stroke();
-
-        // Рожки
-        ctx.fillStyle = '#6a3a8a';
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = 'rgba(0,0,0,0.3)';
-        ctx.beginPath();
-        ctx.roundRect(cx - s/2 - 4, cy - s/2 - 6 + bounce, 8, 12, 4);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.roundRect(cx + s/2 - 4, cy - s/2 - 6 + bounce, 8, 12, 4);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
-    }
-
-    // --- КЕЙН (босс, 3D-стиль) ---
-    function drawCaine(x, y, size, anim) {
-        const s = size * 22;
-        const cx = x * CELL, cy = y * CELL;
-        const bounce = Math.sin(anim * 0.7) * 3;
-
-        ctx.shadowColor = 'rgba(0,0,0,0.6)';
-        ctx.shadowBlur = 25;
-        ctx.shadowOffsetY = 5;
-
-        // Тело
-        const grad = ctx.createRadialGradient(cx-6, cy-6+bounce, 2, cx, cy+bounce, s);
-        grad.addColorStop(0, '#ff6b6b');
-        grad.addColorStop(0.5, '#e63946');
-        grad.addColorStop(1, '#b71c1c');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.roundRect(cx - s/2 - 4, cy - s/2 + bounce, s + 8, s, 8);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetY = 0;
-
-        // Шляпа
-        ctx.fillStyle = '#8b0000';
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = 'rgba(0,0,0,0.3)';
-        ctx.beginPath();
-        ctx.roundRect(cx - s/2 - 6, cy - s/2 - 14 + bounce, s + 12, 12, 4);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.roundRect(cx - s/4, cy - s/2 - 28 + bounce, s/2, 16, 4);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
-
-        // Глаза
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.ellipse(cx - 10, cy - 2 + bounce, 9, 11, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(cx + 10, cy - 2 + bounce, 9, 11, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#1a0a2a';
-        ctx.beginPath();
-        ctx.arc(cx - 8, cy + bounce, 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(cx + 12, cy + bounce, 5, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#ff0000';
-        ctx.beginPath();
-        ctx.arc(cx - 6, cy + 3 + bounce, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(cx + 14, cy + 3 + bounce, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Улыбка (злая)
-        ctx.strokeStyle = '#8b0000';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(cx, cy + 8 + bounce, 14, 0.1, Math.PI - 0.1);
-        ctx.stroke();
-
-        // Бантик
-        ctx.fillStyle = '#ff6b6b';
-        ctx.beginPath();
-        ctx.roundRect(cx - s/2 - 10, cy - 2 + bounce, 8, 8, 4);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.roundRect(cx + s/2 + 2, cy - 2 + bounce, 8, 8, 4);
-        ctx.fill();
-    }
-
-    // ============================================================
-    //  ОБНОВЛЕНИЕ
-    // ============================================================
-    function update() {
-        if (gameOver) return;
-        frame++;
-
-        // Движение игрока
-        const dx = targetX - player.x, dy = targetY - player.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist > 0.2) {
-            const step = 0.1;
-            player.x += (dx/dist) * step;
-            player.y += (dy/dist) * step;
-        }
-        player.x = Math.max(0.3, Math.min(COLS - 0.7, player.x));
-        player.y = Math.max(0.3, Math.min(ROWS - 0.7, player.y));
-
-        // Спавн
-        spawnCounter++;
-        if (spawnCounter >= SPAWN_DELAY) {
-            spawnCounter = 0;
-            if (enemies.length < 12) spawnEnemy();
+        // --- Размеры ---
+        function getJaxSize() {
+            const areaRect = gameArea.getBoundingClientRect();
+            const width = Math.min(70, areaRect.width * 0.15);
+            const height = width * 1.3;
+            return { width, height };
         }
 
-        // Движение врагов
-        for (let e of enemies) {
-            const dx2 = player.x - e.x, dy2 = player.y - e.y;
-            const d = Math.sqrt(dx2*dx2 + dy2*dy2);
-            const speed = e.type === 'caine' ? 0.03 : 0.045;
-            if (d > 0.3) {
-                e.x += (dx2/d) * speed;
-                e.y += (dy2/d) * speed;
+        function getPomniSize() {
+            const areaRect = gameArea.getBoundingClientRect();
+            const width = Math.min(80, areaRect.width * 0.17);
+            const height = width * 1.25;
+            return { width, height };
+        }
+
+        // --- Позиционирование Джекса ---
+        function positionJax() {
+            const areaRect = gameArea.getBoundingClientRect();
+            const sizes = getJaxSize();
+            const margin = sizes.width * 0.5;
+            
+            // Безопасная зона снизу (чтобы не перекрывать Помни)
+            const pomniSize = getPomniSize();
+            const bottomSafe = pomniSize.height + 30;
+
+            const maxX = areaRect.width - sizes.width - margin;
+            const maxY = areaRect.height - sizes.height - bottomSafe - margin;
+
+            if (maxX <= 0 || maxY <= 0) {
+                // Если экран слишком маленький, ставим по центру
+                jax.style.left = '50%';
+                jax.style.top = '40%';
+                jax.style.transform = 'translateX(-50%)';
+                return;
             }
-            e.x = Math.max(0.2, Math.min(COLS - 0.2, e.x));
-            e.y = Math.max(0.2, Math.min(ROWS - 0.2, e.y));
-            e.anim += 0.04;
+
+            const x = margin + Math.random() * maxX;
+            const y = margin + Math.random() * maxY;
+
+            jax.style.left = x + 'px';
+            jax.style.top = y + 'px';
+            jax.style.transform = 'none';
         }
 
-        // Пули
-        for (let i = bullets.length - 1; i >= 0; i--) {
-            const b = bullets[i];
-            b.x += b.vx * 0.08;
-            b.y += b.vy * 0.08;
-            b.life--;
+        // --- Показать Джекса ---
+        function showJax() {
+            if (!gameRunning) return;
+            if (isJaxVisible) return;
 
-            let used = false;
-            for (let j = enemies.length - 1; j >= 0; j--) {
-                const e = enemies[j];
-                const dx3 = b.x - e.x, dy3 = b.y - e.y;
-                const hitDist = e.type === 'caine' ? 1.8 : 1.0;
-                if (dx3*dx3 + dy3*dy3 < hitDist) {
-                    e.hp--;
-                    e.hitTimer = 10;
-                    if (e.hp <= 0) {
-                        score += e.type === 'caine' ? 50 : 10;
-                        enemies.splice(j, 1);
-                    }
-                    used = true;
-                    updateUI();
-                    break;
+            // Проверяем, не закончилось ли время
+            if (timeLeft <= 0) {
+                endGame();
+                return;
+            }
+
+            isJaxVisible = true;
+            jax.style.display = 'block';
+            jax.className = '';
+            positionJax();
+
+            // Автоматическое исчезновение через 0.7-1.5 секунды
+            const disappearTime = 700 + Math.random() * 800;
+            if (jaxTimeout) clearTimeout(jaxTimeout);
+            jaxTimeout = setTimeout(() => {
+                if (isJaxVisible && gameRunning) {
+                    // Промах (Джекс сбежал)
+                    jax.className = 'miss';
+                    isJaxVisible = false;
+                    setTimeout(() => {
+                        jax.style.display = 'none';
+                    }, 300);
                 }
+            }, disappearTime);
+        }
+
+        // --- Спавн Джекса ---
+        function spawnJax() {
+            if (!gameRunning) return;
+            if (timeLeft <= 0) {
+                endGame();
+                return;
             }
-            if (used || b.life <= 0 || b.x < -1 || b.x > COLS+1 || b.y < -1 || b.y > ROWS+1) {
-                bullets.splice(i, 1);
+
+            // Если Джекс уже виден, не спавним нового
+            if (isJaxVisible) return;
+
+            showJax();
+        }
+
+        // --- Обработка клика по Джексу (попадание) ---
+        function handleJaxClick(e) {
+            e.stopPropagation();
+            if (!gameRunning) return;
+            if (!isJaxVisible) return;
+            if (timeLeft <= 0) return;
+
+            // Попадание!
+            score++;
+            scoreDisplay.textContent = score;
+
+            // Анимация попадания
+            jax.className = 'hit';
+            isJaxVisible = false;
+
+            // Эффект выстрела
+            createShotEffect(e);
+
+            // Убираем Джекса после анимации
+            setTimeout(() => {
+                jax.style.display = 'none';
+            }, 300);
+
+            // Очищаем таймер исчезновения
+            if (jaxTimeout) {
+                clearTimeout(jaxTimeout);
+                jaxTimeout = null;
+            }
+
+            // Немедленно спавним нового Джекса с небольшой задержкой
+            setTimeout(() => {
+                if (gameRunning && timeLeft > 0) {
+                    showJax();
+                }
+            }, 200 + Math.random() * 300);
+        }
+
+        // --- Эффект выстрела ---
+        function createShotEffect(e) {
+            const rect = gameArea.getBoundingClientRect();
+            const x = (e.clientX || e.pageX) - rect.left;
+            const y = (e.clientY || e.pageY) - rect.top;
+
+            const effect = document.createElement('div');
+            effect.className = 'shot-effect';
+            effect.style.left = (x - 15) + 'px';
+            effect.style.top = (y - 15) + 'px';
+            gameArea.appendChild(effect);
+
+            setTimeout(() => {
+                effect.remove();
+            }, 400);
+        }
+
+        // --- Клик по игровой зоне (промах) ---
+        function handleAreaClick(e) {
+            if (!gameRunning) return;
+            if (timeLeft <= 0) return;
+
+            // Если клик не по Джексу и Джекс виден - промах
+            if (isJaxVisible) {
+                // Но клик мог быть по Джексу, он обработается в handleJaxClick
+                // Проверяем, не кликнули ли по Джексу
+                const target = e.target;
+                if (target.id === 'jax' || target.closest('#jax')) {
+                    return;
+                }
+
+                // Промах!
+                createShotEffect(e);
+                // Джекс убегает
+                jax.className = 'miss';
+                isJaxVisible = false;
+                if (jaxTimeout) {
+                    clearTimeout(jaxTimeout);
+                    jaxTimeout = null;
+                }
+                setTimeout(() => {
+                    jax.style.display = 'none';
+                }, 300);
+
+                // Спавн нового через некоторое время
+                setTimeout(() => {
+                    if (gameRunning && timeLeft > 0) {
+                        showJax();
+                    }
+                }, 400 + Math.random() * 400);
             }
         }
 
-        // Столкновение
-        for (let i = enemies.length - 1; i >= 0; i--) {
-            const e = enemies[i];
-            const dx4 = player.x - e.x, dy4 = player.y - e.y;
-            const hitDist = e.type === 'caine' ? 1.8 : 1.2;
-            if (dx4*dx4 + dy4*dy4 < hitDist) {
-                hp--;
-                enemies.splice(i, 1);
-                updateUI();
-                if (hp <= 0) { gameOver = true; hp = 0; updateUI(); }
-                break;
+        // --- Таймер игры ---
+        function updateTimer() {
+            if (!gameRunning) return;
+            timeLeft--;
+            if (timeLeft <= 0) {
+                endGame();
             }
         }
 
-        enemyCountSpan.textContent = enemies.length;
-    }
-
-    // ============================================================
-    //  ОТРИСОВКА
-    // ============================================================
-    function draw() {
-        ctx.clearRect(0, 0, W, H);
-
-        // Фон
-        const grad = ctx.createRadialGradient(200, 200, 50, 300, 300, 500);
-        grad.addColorStop(0, '#2a1a6a');
-        grad.addColorStop(0.4, '#1a1050');
-        grad.addColorStop(1, '#0a0820');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, W, H);
-
-        // Цирковые огни
-        for (let i = 0; i < 30; i++) {
-            const x = (i * 20 + frame * 0.2) % W;
-            const y = 20 + Math.sin(i * 0.5 + frame * 0.01) * 10;
-            ctx.fillStyle = `hsla(${i * 12 + frame}, 80%, 60%, 0.08)`;
-            ctx.beginPath();
-            ctx.arc(x, y, 3 + Math.sin(frame * 0.02 + i) * 1.5, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        // Враги
-        for (let e of enemies) {
-            if (e.type === 'caine') {
-                drawCaine(e.x, e.y, e.size, e.anim);
-            } else {
-                drawJax(e.x, e.y, e.size, e.anim);
+        // --- Начать игру ---
+        function startGame() {
+            // Сброс
+            score = 0;
+            timeLeft = 30;
+            scoreDisplay.textContent = '0';
+            isJaxVisible = false;
+            if (jaxTimeout) {
+                clearTimeout(jaxTimeout);
+                jaxTimeout = null;
             }
+            jax.style.display = 'none';
+            jax.className = '';
+            gameOverScreen.classList.remove('show');
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'none';
+
+            gameRunning = true;
+
+            // Таймер игры (каждую секунду)
+            if (gameTimer) clearInterval(gameTimer);
+            gameTimer = setInterval(updateTimer, 1000);
+
+            // Первый спавн
+            setTimeout(() => {
+                if (gameRunning) showJax();
+            }, 500);
+
+            // Регулярный спавн (каждые 1.2-2 секунды)
+            if (spawnTimer) clearInterval(spawnTimer);
+            spawnTimer = setInterval(() => {
+                if (gameRunning && timeLeft > 0) {
+                    spawnJax();
+                }
+            }, 1200 + Math.random() * 800);
         }
 
-        // Пули (светящиеся)
-        for (let b of bullets) {
-            const bx = b.x * CELL, by = b.y * CELL;
-            ctx.shadowColor = '#ffd93d';
-            ctx.shadowBlur = 30;
-            ctx.fillStyle = '#ffd93d';
-            ctx.beginPath();
-            ctx.arc(bx, by, 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(bx, by, 3, 0, Math.PI * 2);
-            ctx.fill();
+        // --- Закончить игру ---
+        function endGame() {
+            if (!gameRunning) return;
+            gameRunning = false;
+
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+            if (spawnTimer) {
+                clearInterval(spawnTimer);
+                spawnTimer = null;
+            }
+            if (jaxTimeout) {
+                clearTimeout(jaxTimeout);
+                jaxTimeout = null;
+            }
+
+            jax.style.display = 'none';
+            isJaxVisible = false;
+
+            // Показать экран окончания
+            finalScoreDisplay.textContent = score;
+            gameOverScreen.style.display = 'flex';
+            // Добавляем класс для анимации
+            setTimeout(() => {
+                gameOverScreen.classList.add('show');
+            }, 10);
         }
 
-        // Игрок
-        drawPomni(player.x, player.y, player.size);
-
-        // Game Over
-        if (gameOver) {
-            ctx.fillStyle = 'rgba(10, 8, 30, 0.85)';
-            ctx.fillRect(0, 0, W, H);
-
-            ctx.shadowBlur = 40;
-            ctx.shadowColor = '#ff6b9d';
-            ctx.font = 'bold 44px "Segoe UI", Arial, sans-serif';
-            ctx.fillStyle = '#ff6b9d';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('🎪 ИГРА ОКОНЧЕНА', W/2, H/2 - 40);
-
-            ctx.shadowBlur = 0;
-            ctx.font = '20px "Segoe UI", Arial, sans-serif';
-            ctx.fillStyle = '#c8b8ff';
-            ctx.fillText('нажми ↺ чтобы начать снова', W/2, H/2 + 50);
-
-            ctx.font = '16px "Segoe UI", Arial, sans-serif';
-            ctx.fillStyle = '#8a7ab5';
-            ctx.fillText(`счёт: ${score}`, W/2, H/2 + 100);
+        // --- Рестарт ---
+        function restartGame() {
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+            if (spawnTimer) {
+                clearInterval(spawnTimer);
+                spawnTimer = null;
+            }
+            if (jaxTimeout) {
+                clearTimeout(jaxTimeout);
+                jaxTimeout = null;
+            }
+            gameRunning = false;
+            isJaxVisible = false;
+            jax.style.display = 'none';
+            gameOverScreen.classList.remove('show');
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'flex';
+            score = 0;
+            timeLeft = 30;
+            scoreDisplay.textContent = '0';
         }
-    }
 
-    // ============================================================
-    //  ЦИКЛ
-    // ============================================================
-    function gameLoop() {
-        update();
-        draw();
-        requestAnimationFrame(gameLoop);
-    }
-
-    // ============================================================
-    //  УПРАВЛЕНИЕ
-    // ============================================================
-    function handleCanvasClick(e) {
-        if (gameOver) return;
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-
-        let clientX, clientY;
-        if (e.touches) {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
+        // --- Обработчики событий ---
+        jax.addEventListener('click', handleJaxClick);
+        jax.addEventListener('touchstart', function(e) {
             e.preventDefault();
-        } else {
-            clientX = e.clientX;
-            clientY = e.clientY;
-        }
+            handleJaxClick(e);
+        }, { passive: false });
 
-        const canvasX = (clientX - rect.left) * scaleX;
-        const canvasY = (clientY - rect.top) * scaleY;
+        gameArea.addEventListener('click', handleAreaClick);
+        gameArea.addEventListener('touchstart', function(e) {
+            // Проверяем, не тапнули ли по Джексу
+            const target = e.target;
+            if (target.id === 'jax' || target.closest('#jax')) {
+                return;
+            }
+            e.preventDefault();
+            handleAreaClick(e);
+        }, { passive: false });
 
-        const gridX = canvasX / CELL;
-        const gridY = canvasY / CELL;
+        startBtn.addEventListener('click', startGame);
+        startBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            startGame();
+        }, { passive: false });
 
-        targetX = Math.max(0.3, Math.min(COLS - 0.7, gridX));
-        targetY = Math.max(0.3, Math.min(ROWS - 0.7, gridY));
+        restartBtn.addEventListener('click', restartGame);
+        restartBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            restartGame();
+        }, { passive: false });
 
-        shootAt(gridX, gridY);
-    }
+        playAgainBtn.addEventListener('click', function() {
+            restartGame();
+            setTimeout(startGame, 300);
+        });
+        playAgainBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            restartGame();
+            setTimeout(startGame, 300);
+        }, { passive: false });
 
-    canvas.addEventListener('click', handleCanvasClick);
-    canvas.addEventListener('touchstart', handleCanvasClick, { passive: false });
+        // --- Адаптация при изменении размера ---
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (isJaxVisible && gameRunning) {
+                    positionJax();
+                }
+            }, 200);
+        });
 
-    // ============================================================
-    //  РЕСТАРТ
-    // ============================================================
-    document.getElementById('restartBtn').addEventListener('click', () => {
-        resetGame();
-        player.x = 10; player.y = 18;
-        targetX = player.x; targetY = player.y;
-        enemies = []; bullets = [];
-        spawnCounter = 0;
-        updateUI();
-    });
+        // --- Инициализация ---
+        // Показываем стартовый экран
+        startScreen.style.display = 'flex';
+        gameOverScreen.style.display = 'none';
 
-    // ============================================================
-    //  ЗАПУСК
-    // ============================================================
-    resetGame();
-    gameLoop();
+        // Устанавливаем размеры при загрузке
+        window.addEventListener('load', function() {
+            // Маленькая задержка для корректных размеров
+            setTimeout(() => {
+                if (isJaxVisible) positionJax();
+            }, 100);
+        });
 
-    // roundRect polyfill для старых браузеров
-    if (!CanvasRenderingContext2D.prototype.roundRect) {
-        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-            if (r > w/2) r = w/2;
-            if (r > h/2) r = h/2;
-            this.moveTo(x + r, y);
-            this.lineTo(x + w - r, y);
-            this.quadraticCurveTo(x + w, y, x + w, y + r);
-            this.lineTo(x + w, y + h - r);
-            this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-            this.lineTo(x + r, y + h);
-            this.quadraticCurveTo(x, y + h, x, y + h - r);
-            this.lineTo(x, y + r);
-            this.quadraticCurveTo(x, y, x + r, y);
-            this.closePath();
-            return this;
-        };
-    }
+        console.log('🎪 Добро пожаловать в Цифровой Цирк!');
+        console.log('🐰 Помни стреляет в Джекса!');
+        console.log('🎯 Кликай по Джексу, чтобы набрать очки!');
 
-    if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
-    }
+    })();
 </script>
 
 </body>

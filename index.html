@@ -1,822 +1,264 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Помни стреляет в Джекса</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circus Shooter</title>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0a1a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-            touch-action: manipulation;
-        }
-
-        #game-container {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            height: 100vh;
-            max-height: 800px;
-            background: linear-gradient(135deg, #1a0533 0%, #2d1b69 30%, #8b2f97 60%, #ff6b9d 100%);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 0 60px rgba(255, 107, 157, 0.3);
-            touch-action: none;
-        }
-
-        /* Цифровой шум на фоне */
-        #game-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(255, 107, 157, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(107, 107, 255, 0.15) 0%, transparent 50%),
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* Верхняя панель */
-        #header {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px 10px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%);
-        }
-
-        #score-display {
-            color: #fff;
-            font-size: 24px;
-            font-weight: bold;
-            text-shadow: 0 0 20px rgba(255, 107, 157, 0.8), 0 0 40px rgba(255, 107, 157, 0.4);
-            background: rgba(0,0,0,0.4);
-            padding: 8px 20px;
-            border-radius: 30px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        #score-display span {
-            color: #ff6b9d;
-        }
-
-        #restart-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            padding: 8px 18px;
-            border-radius: 30px;
-            font-size: 16px;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
-            touch-action: manipulation;
-        }
-
-        #restart-btn:active {
-            transform: scale(0.9);
-            background: rgba(255, 107, 157, 0.3);
-        }
-
-        /* Игровая зона */
-        #game-area {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            height: calc(100% - 80px);
-            overflow: hidden;
-            touch-action: none;
-            cursor: crosshair;
-        }
-
-        /* Помни (стрелок) - внизу по центру */
-        #pomni {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 100px;
-            z-index: 5;
-            transition: transform 0.1s;
-            pointer-events: none;
-        }
-
-        #pomni img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: drop-shadow(0 0 30px rgba(255, 107, 157, 0.5));
-            animation: pomniFloat 2s ease-in-out infinite;
-        }
-
-        @keyframes pomniFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        /* Джекс (мишень) */
-        #jax {
-            position: absolute;
-            width: 70px;
-            height: 90px;
-            z-index: 3;
-            cursor: pointer;
-            touch-action: none;
-            transition: transform 0.05s;
-            pointer-events: auto;
-            display: none;
-        }
-
-        #jax img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: drop-shadow(0 0 20px rgba(180, 100, 255, 0.6));
-            animation: jaxIdle 0.8s ease-in-out infinite;
-        }
-
-        @keyframes jaxIdle {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            25% { transform: scale(1.05) rotate(-3deg); }
-            75% { transform: scale(1.05) rotate(3deg); }
-        }
-
-        #jax.hit {
-            animation: hitEffect 0.3s forwards;
-        }
-
-        @keyframes hitEffect {
-            0% { transform: scale(1.2); opacity: 1; }
-            50% { transform: scale(1.5) rotate(20deg); opacity: 0.7; }
-            100% { transform: scale(0) rotate(40deg); opacity: 0; }
-        }
-
-        #jax.miss {
-            animation: missEffect 0.3s forwards;
-        }
-
-        @keyframes missEffect {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(0.3); opacity: 0; }
-        }
-
-        /* Эффект выстрела */
-        .shot-effect {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background: radial-gradient(circle, #ff6b9d, #ff2d55, transparent);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 4;
-            animation: shotFade 0.4s forwards;
-        }
-
-        @keyframes shotFade {
-            0% { transform: scale(0.5); opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
-        }
-
-        /* Стартовый экран */
-        #start-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 20;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: rgba(10, 10, 26, 0.85);
-            backdrop-filter: blur(15px);
-            padding: 30px;
-            text-align: center;
-        }
-
-        #start-screen h1 {
-            color: #ff6b9d;
-            font-size: 36px;
-            margin-bottom: 10px;
-            text-shadow: 0 0 30px rgba(255, 107, 157, 0.5);
-        }
-
-        #start-screen .subtitle {
-            color: #b388ff;
-            font-size: 18px;
-            margin-bottom: 30px;
-        }
-
-        #start-screen .characters {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin-bottom: 30px;
-        }
-
-        #start-screen .char-item {
-            text-align: center;
-        }
-
-        #start-screen .char-item .emoji {
-            font-size: 64px;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        #start-screen .char-item .name {
-            color: #fff;
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        #start-btn {
-            background: linear-gradient(135deg, #ff6b9d, #ff2d55);
-            border: none;
-            color: #fff;
-            padding: 16px 50px;
-            border-radius: 50px;
-            font-size: 22px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 40px rgba(255, 107, 157, 0.4);
-            transition: all 0.3s;
-            touch-action: manipulation;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        #start-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Игровой оверлей */
-        #game-over {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 15;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: rgba(10, 10, 26, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            text-align: center;
-        }
-
-        #game-over.show {
-            display: flex;
-        }
-
-        #game-over h2 {
-            color: #ff6b9d;
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-
-        #game-over .final-score {
-            color: #fff;
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-
-        #game-over .final-score span {
-            color: #ff6b9d;
-            font-size: 48px;
-        }
-
-        #game-over .sub {
-            color: #b388ff;
-            font-size: 16px;
-            margin-bottom: 30px;
-        }
-
-        #game-over .play-again-btn {
-            background: linear-gradient(135deg, #b388ff, #7c4dff);
-            border: none;
-            color: #fff;
-            padding: 14px 40px;
-            border-radius: 50px;
-            font-size: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 30px rgba(179, 136, 255, 0.4);
-            transition: all 0.3s;
-            touch-action: manipulation;
-        }
-
-        #game-over .play-again-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Адаптивность */
-        @media (max-width: 500px) {
-            #game-container {
-                max-height: 100vh;
-                border-radius: 0;
-            }
-            #pomni {
-                width: 60px;
-                height: 75px;
-                bottom: 10px;
-            }
-            #jax {
-                width: 55px;
-                height: 70px;
-            }
-            #score-display {
-                font-size: 18px;
-                padding: 5px 14px;
-            }
-            #start-screen h1 {
-                font-size: 28px;
-            }
-            #start-screen .char-item .emoji {
-                font-size: 48px;
-            }
-        }
-
-        @media (max-width: 400px) {
-            #pomni {
-                width: 50px;
-                height: 63px;
-            }
-            #jax {
-                width: 45px;
-                height: 58px;
-            }
-            #score-display {
-                font-size: 15px;
-                padding: 4px 12px;
-            }
-            #start-btn {
-                padding: 14px 30px;
-                font-size: 18px;
-            }
-        }
-
-        /* Для высоких экранов */
-        @media (min-height: 900px) {
-            #pomni {
-                width: 100px;
-                height: 125px;
-            }
-            #jax {
-                width: 85px;
-                height: 105px;
-            }
-        }
-    </style>
+<style>
+html,body{
+    margin:0;
+    overflow:hidden;
+    background:#000;
+    touch-action:none;
+    font-family:Arial,sans-serif;
+}
+canvas{
+    display:block;
+}
+#ui{
+    position:absolute;
+    top:20px;
+    left:20px;
+    color:white;
+    font-size:28px;
+    font-weight:bold;
+    text-shadow:2px 2px 5px black;
+}
+</style>
 </head>
 <body>
 
-<div id="game-container">
-    <!-- Верхняя панель -->
-    <div id="header">
-        <div id="score-display">🎯 <span id="score">0</span></div>
-        <button id="restart-btn">🔄 Рестарт</button>
-    </div>
-
-    <!-- Игровая зона -->
-    <div id="game-area">
-        <!-- Помни -->
-        <div id="pomni">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 250'%3E%3Cdefs%3E%3CradialGradient id='eyeGrad' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' style='stop-color:%23ff6b9d'/%3E%3Cstop offset='50%25' style='stop-color:%234a00ff'/%3E%3Cstop offset='100%25' style='stop-color:%23ff2d55'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='200' height='250' rx='40' fill='%23ff2d55'/%3E%3Crect y='60' width='200' height='140' rx='20' fill='%233333cc'/%3E%3Ccircle cx='70' cy='120' r='30' fill='white'/%3E%3Ccircle cx='130' cy='120' r='30' fill='white'/%3E%3Ccircle cx='70' cy='120' r='18' fill='url(%23eyeGrad)'/%3E%3Ccircle cx='130' cy='120' r='18' fill='url(%23eyeGrad)'/%3E%3Ccircle cx='63' cy='113' r='6' fill='white'/%3E%3Ccircle cx='123' cy='113' r='6' fill='white'/%3E%3Cpath d='M75 170 Q100 190 125 170' stroke='%23ff6b9d' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3Crect x='80' y='190' width='40' height='25' rx='5' fill='%23ff6b9d'/%3E%3C/svg%3E" alt="Помни">
-        </div>
-
-        <!-- Джекс (появляется динамически) -->
-        <div id="jax">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 250'%3E%3Crect width='200' height='250' rx='50' fill='%23b388ff'/%3E%3Cellipse cx='100' cy='80' rx='60' ry='50' fill='%239c6eff'/%3E%3Cellipse cx='60' cy='50' rx='25' ry='35' fill='%23b388ff'/%3E%3Cellipse cx='140' cy='50' rx='25' ry='35' fill='%23b388ff'/%3E%3Ccircle cx='75' cy='80' r='15' fill='white'/%3E%3Ccircle cx='125' cy='80' r='15' fill='white'/%3E%3Ccircle cx='75' cy='80' r='8' fill='%23ff2d55'/%3E%3Ccircle cx='125' cy='80' r='8' fill='%23ff2d55'/%3E%3Ccircle cx='70' cy='75' r='4' fill='white'/%3E%3Ccircle cx='120' cy='75' r='4' fill='white'/%3E%3Crect x='50' y='110' width='100' height='30' rx='10' fill='%23ff6b9d'/%3E%3Crect x='30' y='140' width='30' height='80' rx='10' fill='%239c6eff'/%3E%3Crect x='140' y='140' width='30' height='80' rx='10' fill='%239c6eff'/%3E%3Crect x='10' y='200' width='40' height='30' rx='8' fill='%23ffd54f'/%3E%3Crect x='150' y='200' width='40' height='30' rx='8' fill='%23ffd54f'/%3E%3C/svg%3E" alt="Джекс">
-        </div>
-    </div>
-
-    <!-- Стартовый экран -->
-    <div id="start-screen">
-        <h1>🎪 Цифровой Цирк</h1>
-        <p class="subtitle">Помни стреляет в Джекса!</p>
-        <div class="characters">
-            <div class="char-item">
-                <span class="emoji">🎭</span>
-                <span class="name">Помни</span>
-            </div>
-            <div class="char-item">
-                <span class="emoji">🐰</span>
-                <span class="name">Джекс</span>
-            </div>
-        </div>
-        <button id="start-btn">🔫 Начать игру</button>
-        <p style="color: rgba(255,255,255,0.3); font-size: 12px; margin-top: 20px;">Кликни по Джексу, чтобы выстрелить</p>
-    </div>
-
-    <!-- Экран окончания -->
-    <div id="game-over">
-        <h2>🎯 Время вышло!</h2>
-        <p class="final-score">Очков: <span id="final-score">0</span></p>
-        <p class="sub">Помни отомстила за все шалости!</p>
-        <button class="play-again-btn" id="play-again-btn">🔄 Играть снова</button>
-    </div>
-</div>
+<div id="ui">Очки: <span id="score">0</span></div>
+<canvas id="game"></canvas>
 
 <script>
-    (function() {
-        'use strict';
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-        // --- DOM элементы ---
-        const gameArea = document.getElementById('game-area');
-        const jax = document.getElementById('jax');
-        const scoreDisplay = document.getElementById('score');
-        const finalScoreDisplay = document.getElementById('final-score');
-        const startScreen = document.getElementById('start-screen');
-        const gameOverScreen = document.getElementById('game-over');
-        const startBtn = document.getElementById('start-btn');
-        const restartBtn = document.getElementById('restart-btn');
-        const playAgainBtn = document.getElementById('play-again-btn');
+function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
 
-        // --- Переменные игры ---
-        let score = 0;
-        let gameRunning = false;
-        let gameTimer = null;
-        let spawnTimer = null;
-        let timeLeft = 30; // секунд
-        let isJaxVisible = false;
-        let jaxTimeout = null;
+const player = {
+    x: 100,
+    y: canvas.height / 2,
+    w: 90,
+    h: 130
+};
 
-        // --- Размеры ---
-        function getJaxSize() {
-            const areaRect = gameArea.getBoundingClientRect();
-            const width = Math.min(70, areaRect.width * 0.15);
-            const height = width * 1.3;
-            return { width, height };
-        }
+const enemy = {
+    x: canvas.width - 220,
+    y: canvas.height / 2,
+    w: 90,
+    h: 150,
+    speed: 3
+};
 
-        function getPomniSize() {
-            const areaRect = gameArea.getBoundingClientRect();
-            const width = Math.min(80, areaRect.width * 0.17);
-            const height = width * 1.25;
-            return { width, height };
-        }
+let bullets = [];
+let score = 0;
 
-        // --- Позиционирование Джекса ---
-        function positionJax() {
-            const areaRect = gameArea.getBoundingClientRect();
-            const sizes = getJaxSize();
-            const margin = sizes.width * 0.5;
-            
-            // Безопасная зона снизу (чтобы не перекрывать Помни)
-            const pomniSize = getPomniSize();
-            const bottomSafe = pomniSize.height + 30;
+function updateScore(){
+    document.getElementById("score").textContent = score;
+}
 
-            const maxX = areaRect.width - sizes.width - margin;
-            const maxY = areaRect.height - sizes.height - bottomSafe - margin;
+window.addEventListener("mousemove", e=>{
+    player.y = e.clientY;
+});
 
-            if (maxX <= 0 || maxY <= 0) {
-                // Если экран слишком маленький, ставим по центру
-                jax.style.left = '50%';
-                jax.style.top = '40%';
-                jax.style.transform = 'translateX(-50%)';
-                return;
-            }
+window.addEventListener("touchmove", e=>{
+    player.y = e.touches[0].clientY;
+    e.preventDefault();
+});
 
-            const x = margin + Math.random() * maxX;
-            const y = margin + Math.random() * maxY;
+window.addEventListener("click", shoot);
+window.addEventListener("touchstart", e=>{
+    shoot();
+    e.preventDefault();
+});
 
-            jax.style.left = x + 'px';
-            jax.style.top = y + 'px';
-            jax.style.transform = 'none';
-        }
+function shoot(){
+    bullets.push({
+        x: player.x + 70,
+        y: player.y,
+        r: 10
+    });
+}
 
-        // --- Показать Джекса ---
-        function showJax() {
-            if (!gameRunning) return;
-            if (isJaxVisible) return;
+function drawBackground(){
 
-            // Проверяем, не закончилось ли время
-            if (timeLeft <= 0) {
-                endGame();
-                return;
-            }
+    let g = ctx.createLinearGradient(
+        0,
+        0,
+        0,
+        canvas.height
+    );
 
-            isJaxVisible = true;
-            jax.style.display = 'block';
-            jax.className = '';
-            positionJax();
+    g.addColorStop(0,"#ff66cc");
+    g.addColorStop(1,"#6633ff");
 
-            // Автоматическое исчезновение через 0.7-1.5 секунды
-            const disappearTime = 700 + Math.random() * 800;
-            if (jaxTimeout) clearTimeout(jaxTimeout);
-            jaxTimeout = setTimeout(() => {
-                if (isJaxVisible && gameRunning) {
-                    // Промах (Джекс сбежал)
-                    jax.className = 'miss';
-                    isJaxVisible = false;
-                    setTimeout(() => {
-                        jax.style.display = 'none';
-                    }, 300);
-                }
-            }, disappearTime);
-        }
+    ctx.fillStyle = g;
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
-        // --- Спавн Джекса ---
-        function spawnJax() {
-            if (!gameRunning) return;
-            if (timeLeft <= 0) {
-                endGame();
-                return;
-            }
+    for(let i=0;i<15;i++){
+        ctx.fillStyle =
+            "rgba(255,255,255,0.08)";
 
-            // Если Джекс уже виден, не спавним нового
-            if (isJaxVisible) return;
+        ctx.beginPath();
+        ctx.arc(
+            (i*170 + performance.now()*0.03)
+            % (canvas.width+200),
+            (i*120)%canvas.height,
+            50,
+            0,
+            Math.PI*2
+        );
+        ctx.fill();
+    }
+}
 
-            showJax();
-        }
+function drawPlayer(){
 
-        // --- Обработка клика по Джексу (попадание) ---
-        function handleJaxClick(e) {
-            e.stopPropagation();
-            if (!gameRunning) return;
-            if (!isJaxVisible) return;
-            if (timeLeft <= 0) return;
+    ctx.save();
+    ctx.translate(player.x, player.y);
 
-            // Попадание!
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(0,-30,35,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = "#ff0000";
+    ctx.fillRect(-35,0,35,60);
+
+    ctx.fillStyle = "#0000ff";
+    ctx.fillRect(0,0,35,60);
+
+    ctx.fillStyle = "#000";
+    ctx.beginPath();
+    ctx.arc(-10,-35,5,0,Math.PI*2);
+    ctx.arc(10,-35,5,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.strokeStyle = "#000";
+    ctx.beginPath();
+    ctx.arc(0,-20,10,0,Math.PI);
+    ctx.stroke();
+
+    ctx.restore();
+}
+
+function drawEnemy(){
+
+    ctx.save();
+    ctx.translate(enemy.x, enemy.y);
+
+    ctx.fillStyle = "#7a38ff";
+    ctx.fillRect(-25,-20,50,80);
+
+    ctx.fillRect(-35,-80,20,55);
+    ctx.fillRect(15,-80,20,55);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(-10,-5,5,0,Math.PI*2);
+    ctx.arc(10,-5,5,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
+function drawBullets(){
+
+    ctx.fillStyle = "yellow";
+
+    bullets.forEach(b=>{
+        ctx.beginPath();
+        ctx.arc(
+            b.x,
+            b.y,
+            b.r,
+            0,
+            Math.PI*2
+        );
+        ctx.fill();
+    });
+}
+
+function hit(a,b){
+
+    return (
+        a.x + a.r > b.x - b.w/2 &&
+        a.x - a.r < b.x + b.w/2 &&
+        a.y + a.r > b.y - 80 &&
+        a.y - a.r < b.y + 60
+    );
+}
+
+function update(){
+
+    enemy.x -= enemy.speed;
+
+    bullets.forEach((b,i)=>{
+        b.x += 12;
+
+        if(hit(b,enemy)){
+            bullets.splice(i,1);
+
             score++;
-            scoreDisplay.textContent = score;
+            updateScore();
 
-            // Анимация попадания
-            jax.className = 'hit';
-            isJaxVisible = false;
+            enemy.x =
+                canvas.width + 100;
 
-            // Эффект выстрела
-            createShotEffect(e);
+            enemy.y =
+                100 +
+                Math.random() *
+                (canvas.height - 200);
 
-            // Убираем Джекса после анимации
-            setTimeout(() => {
-                jax.style.display = 'none';
-            }, 300);
-
-            // Очищаем таймер исчезновения
-            if (jaxTimeout) {
-                clearTimeout(jaxTimeout);
-                jaxTimeout = null;
-            }
-
-            // Немедленно спавним нового Джекса с небольшой задержкой
-            setTimeout(() => {
-                if (gameRunning && timeLeft > 0) {
-                    showJax();
-                }
-            }, 200 + Math.random() * 300);
+            enemy.speed += 0.2;
         }
+    });
 
-        // --- Эффект выстрела ---
-        function createShotEffect(e) {
-            const rect = gameArea.getBoundingClientRect();
-            const x = (e.clientX || e.pageX) - rect.left;
-            const y = (e.clientY || e.pageY) - rect.top;
+    if(enemy.x < -100){
 
-            const effect = document.createElement('div');
-            effect.className = 'shot-effect';
-            effect.style.left = (x - 15) + 'px';
-            effect.style.top = (y - 15) + 'px';
-            gameArea.appendChild(effect);
+        score = 0;
+        updateScore();
 
-            setTimeout(() => {
-                effect.remove();
-            }, 400);
-        }
+        enemy.x =
+            canvas.width + 100;
 
-        // --- Клик по игровой зоне (промах) ---
-        function handleAreaClick(e) {
-            if (!gameRunning) return;
-            if (timeLeft <= 0) return;
+        enemy.speed = 3;
+    }
+}
 
-            // Если клик не по Джексу и Джекс виден - промах
-            if (isJaxVisible) {
-                // Но клик мог быть по Джексу, он обработается в handleJaxClick
-                // Проверяем, не кликнули ли по Джексу
-                const target = e.target;
-                if (target.id === 'jax' || target.closest('#jax')) {
-                    return;
-                }
+function render(){
 
-                // Промах!
-                createShotEffect(e);
-                // Джекс убегает
-                jax.className = 'miss';
-                isJaxVisible = false;
-                if (jaxTimeout) {
-                    clearTimeout(jaxTimeout);
-                    jaxTimeout = null;
-                }
-                setTimeout(() => {
-                    jax.style.display = 'none';
-                }, 300);
+    drawBackground();
+    drawPlayer();
+    drawEnemy();
+    drawBullets();
+}
 
-                // Спавн нового через некоторое время
-                setTimeout(() => {
-                    if (gameRunning && timeLeft > 0) {
-                        showJax();
-                    }
-                }, 400 + Math.random() * 400);
-            }
-        }
+function loop(){
 
-        // --- Таймер игры ---
-        function updateTimer() {
-            if (!gameRunning) return;
-            timeLeft--;
-            if (timeLeft <= 0) {
-                endGame();
-            }
-        }
+    update();
+    render();
 
-        // --- Начать игру ---
-        function startGame() {
-            // Сброс
-            score = 0;
-            timeLeft = 30;
-            scoreDisplay.textContent = '0';
-            isJaxVisible = false;
-            if (jaxTimeout) {
-                clearTimeout(jaxTimeout);
-                jaxTimeout = null;
-            }
-            jax.style.display = 'none';
-            jax.className = '';
-            gameOverScreen.classList.remove('show');
-            gameOverScreen.style.display = 'none';
-            startScreen.style.display = 'none';
+    requestAnimationFrame(loop);
+}
 
-            gameRunning = true;
-
-            // Таймер игры (каждую секунду)
-            if (gameTimer) clearInterval(gameTimer);
-            gameTimer = setInterval(updateTimer, 1000);
-
-            // Первый спавн
-            setTimeout(() => {
-                if (gameRunning) showJax();
-            }, 500);
-
-            // Регулярный спавн (каждые 1.2-2 секунды)
-            if (spawnTimer) clearInterval(spawnTimer);
-            spawnTimer = setInterval(() => {
-                if (gameRunning && timeLeft > 0) {
-                    spawnJax();
-                }
-            }, 1200 + Math.random() * 800);
-        }
-
-        // --- Закончить игру ---
-        function endGame() {
-            if (!gameRunning) return;
-            gameRunning = false;
-
-            if (gameTimer) {
-                clearInterval(gameTimer);
-                gameTimer = null;
-            }
-            if (spawnTimer) {
-                clearInterval(spawnTimer);
-                spawnTimer = null;
-            }
-            if (jaxTimeout) {
-                clearTimeout(jaxTimeout);
-                jaxTimeout = null;
-            }
-
-            jax.style.display = 'none';
-            isJaxVisible = false;
-
-            // Показать экран окончания
-            finalScoreDisplay.textContent = score;
-            gameOverScreen.style.display = 'flex';
-            // Добавляем класс для анимации
-            setTimeout(() => {
-                gameOverScreen.classList.add('show');
-            }, 10);
-        }
-
-        // --- Рестарт ---
-        function restartGame() {
-            if (gameTimer) {
-                clearInterval(gameTimer);
-                gameTimer = null;
-            }
-            if (spawnTimer) {
-                clearInterval(spawnTimer);
-                spawnTimer = null;
-            }
-            if (jaxTimeout) {
-                clearTimeout(jaxTimeout);
-                jaxTimeout = null;
-            }
-            gameRunning = false;
-            isJaxVisible = false;
-            jax.style.display = 'none';
-            gameOverScreen.classList.remove('show');
-            gameOverScreen.style.display = 'none';
-            startScreen.style.display = 'flex';
-            score = 0;
-            timeLeft = 30;
-            scoreDisplay.textContent = '0';
-        }
-
-        // --- Обработчики событий ---
-        jax.addEventListener('click', handleJaxClick);
-        jax.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            handleJaxClick(e);
-        }, { passive: false });
-
-        gameArea.addEventListener('click', handleAreaClick);
-        gameArea.addEventListener('touchstart', function(e) {
-            // Проверяем, не тапнули ли по Джексу
-            const target = e.target;
-            if (target.id === 'jax' || target.closest('#jax')) {
-                return;
-            }
-            e.preventDefault();
-            handleAreaClick(e);
-        }, { passive: false });
-
-        startBtn.addEventListener('click', startGame);
-        startBtn.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            startGame();
-        }, { passive: false });
-
-        restartBtn.addEventListener('click', restartGame);
-        restartBtn.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            restartGame();
-        }, { passive: false });
-
-        playAgainBtn.addEventListener('click', function() {
-            restartGame();
-            setTimeout(startGame, 300);
-        });
-        playAgainBtn.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            restartGame();
-            setTimeout(startGame, 300);
-        }, { passive: false });
-
-        // --- Адаптация при изменении размера ---
-        let resizeTimeout;
-        window.addEventListener('resize', function() {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                if (isJaxVisible && gameRunning) {
-                    positionJax();
-                }
-            }, 200);
-        });
-
-        // --- Инициализация ---
-        // Показываем стартовый экран
-        startScreen.style.display = 'flex';
-        gameOverScreen.style.display = 'none';
-
-        // Устанавливаем размеры при загрузке
-        window.addEventListener('load', function() {
-            // Маленькая задержка для корректных размеров
-            setTimeout(() => {
-                if (isJaxVisible) positionJax();
-            }, 100);
-        });
-
-        console.log('🎪 Добро пожаловать в Цифровой Цирк!');
-        console.log('🐰 Помни стреляет в Джекса!');
-        console.log('🎯 Кликай по Джексу, чтобы набрать очки!');
-
-    })();
+loop();
 </script>
 
 </body>
 </html>
+```
